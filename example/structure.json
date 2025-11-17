@@ -1,0 +1,18 @@
+{
+    "config": "/content/tile2net/src/tile2net/tileseg/config.py",
+    "assets": {
+        "weights": {
+            "satellite_2021": "/content/tile2net/src/tile2net/raster/resources/assets/weights/satellite_2021.pth",
+            "hrnetv2_w48_imagenet_pretrained": "/content/tile2net/src/tile2net/raster/resources/assets/weights/hrnetv2_w48_imagenet_pretrained.pth"
+        }
+    },
+    "segmentation": "content/output/example/segmentation/example/256_19_4",
+    "tiles": {
+        "info": "content/output/example/tiles/example_256_info.json",
+        "static": "content/output/example/tiles/static/ma/256_19",
+        "stitched": "content/output/example/tiles/stitched/256_19_4"
+    },
+    "polygons": "content/output/example/polygons",
+    "network": "content/output/example/network",
+    "name": "example"
+}
