@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tile Metrics Visualization</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * {
             margin: 0;
@@ -94,6 +96,12 @@
             margin-bottom: 8px;
         }
 
+        .stat-sparkline {
+            margin: 10px 0 8px 0;
+            display: flex;
+            justify-content: center;
+        }
+
         .stat-range {
             font-size: 11px;
             color: #64748b;
@@ -169,15 +177,52 @@
         }
 
         /* Heatmap */
+        .heatmap-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px auto;
+            max-width: fit-content;
+        }
+
+        .heatmap-main {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 0;
+        }
+
+        .heatmap-axis-label-y {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            padding: 0 10px;
+            text-align: center;
+        }
+
+        .heatmap-axis-label-x {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            padding: 10px 0;
+            text-align: center;
+        }
+
         .heatmap-container {
-            overflow-x: auto;
-            margin-bottom: 16px;
+            overflow: visible;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: center;
         }
 
         .heatmap-grid {
             display: inline-grid;
             gap: 2px;
             padding: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
         }
 
         .heatmap-cell {
@@ -236,16 +281,446 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-top: 16px;
-            font-size: 12px;
+            justify-content: center;
+            margin-top: 20px;
+            padding: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #cbd5e1;
         }
 
         .legend-bar {
-            height: 16px;
+            height: 18px;
+            width: 240px;
+            border-radius: 6px;
+            background: linear-gradient(to right, 
+                rgb(120, 40, 35),
+                rgb(160, 120, 35),
+                rgb(70, 140, 50));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* Global Confusion Matrix */
+        .global-confusion-matrix {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid #334155;
+            border-radius: 12px;
+        }
+
+        .global-confusion-matrix h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #f1f5f9;
+            text-align: center;
+        }
+
+        .cm-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cm-cell {
+            padding: 24px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .cm-cell:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .cm-cell.tp {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+
+        .cm-cell.fp {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: rgba(244, 67, 54, 0.5);
+        }
+
+        .cm-cell.fn {
+            background: rgba(255, 152, 0, 0.2);
+            border-color: rgba(255, 152, 0, 0.5);
+        }
+
+        .cm-cell.total {
+            background: rgba(148, 163, 184, 0.15);
+            border-color: rgba(148, 163, 184, 0.4);
+        }
+
+        .cm-cell h3 {
+            margin: 0 0 12px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+            color: #cbd5e1;
+        }
+
+        .cm-cell .value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #f1f5f9;
+        }
+
+        .cm-cell .percentage {
+            font-size: 16px;
+            opacity: 0.75;
+            color: #94a3b8;
+        }
+
+        /* Table */
+        .global-confusion-matrix {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid #334155;
+            border-radius: 12px;
+        }
+
+        .global-confusion-matrix h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #f1f5f9;
+            text-align: center;
+        }
+
+        .cm-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .cm-cell {
+            padding: 24px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .cm-cell:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .cm-cell.tp {
+            background: rgba(76, 175, 80, 0.2);
+            border-color: rgba(76, 175, 80, 0.5);
+        }
+
+        .cm-cell.fp {
+            background: rgba(244, 67, 54, 0.2);
+            border-color: rgba(244, 67, 54, 0.5);
+        }
+
+        .cm-cell.fn {
+            background: rgba(255, 152, 0, 0.2);
+            border-color: rgba(255, 152, 0, 0.5);
+        }
+
+        .cm-cell.total {
+            background: rgba(148, 163, 184, 0.15);
+            border-color: rgba(148, 163, 184, 0.4);
+        }
+
+        .cm-cell h3 {
+            margin: 0 0 12px 0;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+            color: #cbd5e1;
+        }
+
+        .cm-cell .value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #f1f5f9;
+        }
+
+        .cm-cell .percentage {
+            font-size: 16px;
+            opacity: 0.75;
+            color: #94a3b8;
+        }
+
+        /* Distributions / Boxplots */
+        .boxplot-row {
+            margin-bottom: 20px;
+        }
+
+        .boxplot-label {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .boxplot-svg {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Composition Stacked Bars */
+        .composition-bar-row {
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .composition-label {
+            width: 140px;
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .composition-bar {
             flex: 1;
-            max-width: 200px;
+            height: 24px;
+            display: flex;
+            background: rgba(15, 23, 42, 0.3);
             border-radius: 4px;
-            background: linear-gradient(to right, #0f172a, #3b82f6);
+            overflow: hidden;
+            border: 1px solid #334155;
+            position: relative;
+        }
+
+        .composition-segment {
+            height: 100%;
+            transition: opacity 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .composition-segment:hover {
+            opacity: 0.8;
+        }
+
+        .composition-segment.tp {
+            background: #10b981;
+        }
+
+        .composition-segment.fp {
+            background: #ef4444;
+        }
+
+        .composition-segment.fn {
+            background: #f59e0b;
+        }
+
+        .composition-value {
+            width: 80px;
+            font-size: 11px;
+            color: #cbd5e1;
+            text-align: left;
+            flex-shrink: 0;
+        }
+
+        /* Correlation Heatmap */
+        .correlation-grid {
+            display: inline-grid;
+            gap: 2px;
+            background: #1e293b;
+            padding: 2px;
+            border-radius: 8px;
+        }
+
+        .correlation-cell {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .correlation-cell:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+
+        .correlation-cell.header {
+            background: #1e293b;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: default;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .correlation-cell.header:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .correlation-value {
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        /* Performance Buckets */
+        .buckets-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .bucket-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bucket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bucket-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+
+        .bucket-count {
+            font-size: 13px;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .bucket-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 3px;
+            margin-bottom: 10px;
+        }
+
+        .bucket-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .bucket-cell:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+
+        .bucket-cell.empty {
+            background: rgba(255, 255, 255, 0.02);
+            cursor: default;
+        }
+
+        .bucket-cell.empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .bucket-map-container {
+            width: 100%;
+            aspect-ratio: 12 / 8; /* Match grid's 12 columns x 8 rows */
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .bucket-toggle {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 10px;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 4px;
+            border-radius: 6px;
+        }
+
+        .bucket-toggle-btn {
+            flex: 1;
+            padding: 4px 8px;
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .bucket-toggle-btn.active {
+            background: rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+        }
+
+        .bucket-stats {
+            display: flex;
+            justify-content: space-around;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .bucket-stat {
+            text-align: center;
+        }
+
+        .bucket-stat-value {
+            display: block;
+            font-size: 16px;
+            font-weight: 700;
+            color: #e2e8f0;
+            margin-bottom: 2px;
         }
 
         /* Table */
@@ -344,6 +819,14 @@
 
         <div id="error-container"></div>
 
+        <!-- Global Confusion Matrix -->
+        <div id="global-confusion-matrix" class="global-confusion-matrix" style="display: none;">
+            <h2>Global Confusion Matrix (All Tiles)</h2>
+            <div class="cm-grid">
+                <!-- Will be populated by renderGlobalConfusionMatrix() -->
+            </div>
+        </div>
+
         <div id="stats-section" class="stats-grid" style="display: none;">
             <!-- Stats will be populated here -->
         </div>
@@ -353,40 +836,16 @@
                 <div class="control-group">
                     <label>View Mode</label>
                     <select id="view-mode">
-                        <option value="heatmap">Heatmap Grid</option>
+                        <option value="spatial">Spatial View</option>
                         <option value="scatter">Scatter Plot</option>
+                        <option value="statistical">Statistical Analysis</option>
+                        <option value="erroranalysis">Error & Performance Analysis</option>
                         <option value="table">Data Table</option>
                     </select>
                 </div>
 
                 <div class="control-group">
-                    <label>Metric to Display</label>
-                    <select id="metric-select">
-                        <option value="f1_score">F1 Score</option>
-                        <option value="precision">Precision</option>
-                        <option value="recall">Recall</option>
-                        <option value="iou">IoU</option>
-                        <option value="tp_length_m">True Positive (m)</option>
-                        <option value="fp_length_m">False Positive (m)</option>
-                        <option value="fn_length_m">False Negative (m)</option>
-                    </select>
-                </div>
-
-                <div class="control-group">
-                    <label>Sort By</label>
-                    <select id="sort-select">
-                        <option value="f1_score">F1 Score</option>
-                        <option value="precision">Precision</option>
-                        <option value="recall">Recall</option>
-                        <option value="iou">IoU</option>
-                        <option value="tp_length_m">True Positive (m)</option>
-                        <option value="fp_length_m">False Positive (m)</option>
-                        <option value="fn_length_m">False Negative (m)</option>
-                    </select>
-                </div>
-
-                <div class="control-group">
-                    <label>Filter Threshold</label>
+                    <label>Minimum F1 Score (%)</label>
                     <input type="range" id="filter-threshold" min="0" max="100" value="0" step="1">
                     <div class="range-value" id="threshold-display">≥ 0%</div>
                 </div>
@@ -394,12 +853,54 @@
         </div>
 
         <div class="visualization">
-            <div id="heatmap-section">
-                <h3 class="vis-title">📈 Spatial Heatmap: <span id="metric-label">F1 Score</span></h3>
-                <div class="heatmap-container">
-                    <div id="heatmap-grid" class="heatmap-grid"></div>
+            <div id="spatial-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 class="vis-title" style="margin: 0;">🌍 Spatial View: <span id="spatial-metric-label">False Positive (m)</span></h3>
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <!-- Toggle between Heatmap and Map -->
+                        <div style="display: flex; background: #1e293b; border-radius: 8px; padding: 4px; border: 1px solid #334155;">
+                            <button id="toggle-heatmap" style="padding: 6px 16px; background: transparent; color: #94a3b8; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;">📈 Grid</button>
+                            <button id="toggle-map" style="padding: 6px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;">🗺️ Map</button>
+                        </div>
+                        <!-- Metric Selector -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-size: 13px; color: #94a3b8;">Metric:</label>
+                            <select id="metric-select" style="padding: 6px 12px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 13px;">
+                                <option value="f1_score" selected>F1 Score</option>
+                                <option value="precision">Precision</option>
+                                <option value="recall">Recall</option>
+                                <option value="iou">IoU</option>
+                                <option value="tp_length_m">True Positive (m)</option>
+                                <option value="fp_length_m">False Positive (m)</option>
+                                <option value="fn_length_m">False Negative (m)</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-                <div class="legend">
+
+                <!-- Heatmap Grid View -->
+                <div id="heatmap-view" style="display: none;">
+                    <div class="heatmap-wrapper">
+                        <div class="heatmap-main">
+                            <div class="heatmap-axis-label-y">Row (North → South)</div>
+                            <div class="heatmap-container">
+                                <div id="heatmap-grid" class="heatmap-grid"></div>
+                            </div>
+                        </div>
+                        <div class="heatmap-axis-label-x">Column (West → East)</div>
+                    </div>
+                </div>
+
+                <!-- Interactive Map View -->
+                <div id="map-view">
+                    <p style="text-align: center; font-size: 13px; color: #cbd5e1; margin: 0 auto 15px; max-width: 800px; line-height: 1.6;">
+                        Click tiles to see detailed metrics. Tiles colored by selected metric.
+                    </p>
+                    <div id="map-container" style="height: 600px; border-radius: 8px; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.1);"></div>
+                </div>
+
+                <!-- Legend (shared) -->
+                <div class="legend" style="margin-top: 15px;">
                     <span>Low</span>
                     <div class="legend-bar"></div>
                     <span>High</span>
@@ -407,13 +908,84 @@
             </div>
 
             <div id="scatter-section" style="display: none;">
-                <h3 class="vis-title">📊 Performance Scatter: <span id="scatter-label">F1 Score</span></h3>
-                <div style="height: 400px; background: rgba(15,23,42,0.3); border-radius: 6px; position: relative;" id="scatter-plot"></div>
-                <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px;">Showing top 50 tiles sorted by selected metric</p>
+                <h3 class="vis-title">📊 Precision vs Recall Scatter Plot</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+                    <!-- Left: Scatter Plot -->
+                    <div>
+                        <div style="height: 500px; background: rgba(15,23,42,0.3); border-radius: 6px; position: relative;" id="scatter-plot"></div>
+                        <div id="scatter-legend" style="margin-top: 15px;"></div>
+                    </div>
+                    <!-- Right: Geographic Map -->
+                    <div>
+                        <div id="scatter-map-container" style="height: 500px; border-radius: 8px; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.1);"></div>
+                        <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px;">Geographic distribution colored by F1 Score performance</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="statistical-section" style="display: none;">
+                <h3 class="vis-title">📊 Statistical Analysis</h3>
+                
+                <!-- Distributions -->
+                <div style="margin-bottom: 40px;">
+                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 20px 0 15px 20px;">Metric Distributions</h4>
+                    <div id="distributions-container" style="padding: 0 20px 20px 20px;">
+                        <!-- Will be populated by renderDistributions() -->
+                    </div>
+                </div>
+
+                <!-- Correlation Heatmap -->
+                <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 30px;">
+                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 0 0 15px 0; text-align: center;">Metric Correlation Heatmap</h4>
+                    <div id="correlation-container" style="padding: 20px; display: flex; justify-content: center;">
+                        <!-- Will be populated by renderCorrelation() -->
+                    </div>
+                    <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px;">Pearson correlation coefficients between metrics (all 96 tiles)</p>
+                </div>
+            </div>
+
+            <div id="erroranalysis-section" style="display: none;">
+                <h3 class="vis-title">🔍 Error & Performance Analysis</h3>
+                
+                <!-- Performance Buckets -->
+                <div style="margin-bottom: 40px;">
+                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 20px 0 15px 0; text-align: center;">Performance Buckets</h4>
+                    <p style="text-align: center; font-size: 13px; color: #cbd5e1; margin: 0 auto 20px; max-width: 800px; line-height: 1.6;">
+                        Each mini-grid shows the <strong>spatial location</strong> of tiles in that F1 range. 
+                        Brighter tiles = higher F1 within the bucket. Helps identify if poor performance is clustered in specific areas.
+                    </p>
+                    <div id="buckets-container" style="padding: 20px;">
+                        <!-- Will be populated by renderBuckets() -->
+                    </div>
+                    <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px;">Tiles grouped by F1 Score: Excellent (≥90%), Good (70-90%), Fair (50-70%), Poor (<50%)</p>
+                </div>
+
+                <!-- Error Composition -->
+                <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 30px;">
+                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 0 0 15px 20px;">Error Composition (Top 50 Tiles)</h4>
+                    <div id="composition-container" style="padding: 0 20px 20px 20px;">
+                        <!-- Will be populated by renderComposition() -->
+                    </div>
+                    <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px;">Stacked bars show TP/FP/FN breakdown sorted by F1 Score</p>
+                </div>
             </div>
 
             <div id="table-section" style="display: none;">
-                <h3 class="vis-title">📋 Data Table</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 class="vis-title" style="margin: 0;">📋 Data Table</h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label style="font-size: 13px; color: #94a3b8;">Sort By:</label>
+                        <select id="sort-select" style="padding: 6px 12px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 13px;">
+                            <option value="f1_score">F1 Score</option>
+                            <option value="precision">Precision</option>
+                            <option value="recall">Recall</option>
+                            <option value="iou">IoU</option>
+                            <option value="tp_length_m">True Positive (m)</option>
+                            <option value="fp_length_m">False Positive (m)</option>
+                            <option value="fn_length_m">False Negative (m)</option>
+                        </select>
+                    </div>
+                </div>
                 <div class="table-container">
                     <table id="data-table">
                         <thead>
@@ -453,11 +1025,19 @@
         let data = null;
         let stats = null;
         let gridLayout = null;
+        let filterThreshold = 0; // F1 score threshold (0-100)
+
+        // Get filtered data based on threshold
+        function getFilteredData() {
+            if (!data) return [];
+            const threshold = filterThreshold / 100; // Convert percentage to decimal
+            return data.filter(d => (d.f1_score || 0) >= threshold);
+        }
 
         // Load data
         async function loadData() {
             try {
-                const response = await fetch('../output/confusion_matrix_per_tile.json');
+                const response = await fetch('confusion_matrix_per_tile.json');
                 if (!response.ok) throw new Error(`Failed to load: ${response.status}`);
                 data = await response.json();
                 processData();
@@ -524,18 +1104,241 @@
             const intensity = getColorIntensity(value, metricKey);
 
             if (metricKey === 'fp_length_m' || metricKey === 'fn_length_m') {
-                // Red scale for errors
-                const r = Math.floor(255 * intensity);
-                return `rgb(${r}, ${Math.floor(50 * (1 - intensity))}, ${Math.floor(50 * (1 - intensity))})`;
+                // Muted red gradient for errors
+                const r = 80 + Math.floor(60 * intensity);
+                const g = Math.floor(20 * (1 - intensity));
+                const b = Math.floor(20 * (1 - intensity));
+                return `rgb(${r}, ${g}, ${b})`;
             } else if (metricKey === 'tp_length_m') {
-                // Green scale for true positives
-                const g = Math.floor(255 * intensity);
-                return `rgb(${Math.floor(50 * (1 - intensity))}, ${g}, ${Math.floor(50 * (1 - intensity))})`;
+                // Muted green gradient for true positives
+                const r = Math.floor(20 * (1 - intensity));
+                const g = 60 + Math.floor(80 * intensity);
+                const b = Math.floor(30 * (1 - intensity));
+                return `rgb(${r}, ${g}, ${b})`;
             } else {
-                // Blue scale for performance metrics
-                const b = Math.floor(255 * intensity);
-                return `rgb(${Math.floor(50 * (1 - intensity))}, ${Math.floor(150 * intensity)}, ${b})`;
+                // Subtle Red-Yellow-Green gradient for performance metrics
+                if (intensity < 0.5) {
+                    // Dark red to yellow-orange (0 to 0.5)
+                    const t = intensity * 2;
+                    const r = Math.floor(120 + 40 * t);
+                    const g = Math.floor(40 + 80 * t);
+                    const b = 35;
+                    return `rgb(${r}, ${g}, ${b})`;
+                } else {
+                    // Yellow-orange to green (0.5 to 1.0)
+                    const t = (intensity - 0.5) * 2;
+                    const r = Math.floor(160 - 90 * t);
+                    const g = Math.floor(120 + 40 * t);
+                    const b = Math.floor(35 + 15 * t);
+                    return `rgb(${r}, ${g}, ${b})`;
+                }
             }
+        }
+
+        function renderGlobalConfusionMatrix(data) {
+            const container = document.querySelector('.cm-grid');
+            const section = document.getElementById('global-confusion-matrix');
+            if (!container || !section) return;
+
+            // Sum TP/FP/FN across all tiles
+            let totalTP = 0;
+            let totalFP = 0;
+            let totalFN = 0;
+
+            data.forEach(tile => {
+                totalTP += tile.tp_length_m || 0;
+                totalFP += tile.fp_length_m || 0;
+                totalFN += tile.fn_length_m || 0;
+            });
+
+            const total = totalTP + totalFP + totalFN;
+
+            // Calculate percentages
+            const tpPct = total > 0 ? ((totalTP / total) * 100).toFixed(1) : '0.0';
+            const fpPct = total > 0 ? ((totalFP / total) * 100).toFixed(1) : '0.0';
+            const fnPct = total > 0 ? ((totalFN / total) * 100).toFixed(1) : '0.0';
+
+            // Format lengths (convert to km if > 1000m)
+            const formatLength = (m) => {
+                return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${m.toFixed(0)} m`;
+            };
+
+            // Generate HTML
+            container.innerHTML = `
+                <div class="cm-cell tp">
+                    <h3>True Positive (TP)</h3>
+                    <div class="value">${formatLength(totalTP)}</div>
+                    <div class="percentage">${tpPct}%</div>
+                </div>
+                <div class="cm-cell fp">
+                    <h3>False Positive (FP)</h3>
+                    <div class="value">${formatLength(totalFP)}</div>
+                    <div class="percentage">${fpPct}%</div>
+                </div>
+                <div class="cm-cell fn">
+                    <h3>False Negative (FN)</h3>
+                    <div class="value">${formatLength(totalFN)}</div>
+                    <div class="percentage">${fnPct}%</div>
+                </div>
+                <div class="cm-cell total">
+                    <h3>Total Evaluated</h3>
+                    <div class="value">${formatLength(total)}</div>
+                    <div class="percentage">100%</div>
+                </div>
+            `;
+
+            // Show the section
+            section.style.display = 'block';
+        }
+
+        function renderGlobalConfusionMatrix(data) {
+            const container = document.querySelector('.cm-grid');
+            const section = document.getElementById('global-confusion-matrix');
+            if (!container || !section) return;
+
+            // Sum TP/FP/FN across all tiles
+            let totalTP = 0;
+            let totalFP = 0;
+            let totalFN = 0;
+
+            data.forEach(tile => {
+                totalTP += tile.tp_length_m || 0;
+                totalFP += tile.fp_length_m || 0;
+                totalFN += tile.fn_length_m || 0;
+            });
+
+            const total = totalTP + totalFP + totalFN;
+
+            // Calculate percentages
+            const tpPct = total > 0 ? ((totalTP / total) * 100).toFixed(1) : '0.0';
+            const fpPct = total > 0 ? ((totalFP / total) * 100).toFixed(1) : '0.0';
+            const fnPct = total > 0 ? ((totalFN / total) * 100).toFixed(1) : '0.0';
+
+            // Format lengths (convert to km if > 1000m)
+            const formatLength = (m) => {
+                return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${m.toFixed(0)} m`;
+            };
+
+            // Generate HTML
+            container.innerHTML = `
+                <div class="cm-cell tp">
+                    <h3>True Positive (TP)</h3>
+                    <div class="value">${formatLength(totalTP)}</div>
+                    <div class="percentage">${tpPct}%</div>
+                </div>
+                <div class="cm-cell fp">
+                    <h3>False Positive (FP)</h3>
+                    <div class="value">${formatLength(totalFP)}</div>
+                    <div class="percentage">${fpPct}%</div>
+                </div>
+                <div class="cm-cell fn">
+                    <h3>False Negative (FN)</h3>
+                    <div class="value">${formatLength(totalFN)}</div>
+                    <div class="percentage">${fnPct}%</div>
+                </div>
+                <div class="cm-cell total">
+                    <h3>Total Evaluated</h3>
+                    <div class="value">${formatLength(total)}</div>
+                    <div class="percentage">100%</div>
+                </div>
+            `;
+
+            // Show the section
+            section.style.display = 'block';
+        }
+
+        function renderGlobalConfusionMatrix(data) {
+            const container = document.querySelector('.cm-grid');
+            const section = document.getElementById('global-confusion-matrix');
+            if (!container || !section) return;
+
+            // Sum TP/FP/FN across all tiles
+            let totalTP = 0;
+            let totalFP = 0;
+            let totalFN = 0;
+
+            data.forEach(tile => {
+                totalTP += tile.tp_length_m || 0;
+                totalFP += tile.fp_length_m || 0;
+                totalFN += tile.fn_length_m || 0;
+            });
+
+            const total = totalTP + totalFP + totalFN;
+
+            // Calculate percentages
+            const tpPct = total > 0 ? ((totalTP / total) * 100).toFixed(1) : '0.0';
+            const fpPct = total > 0 ? ((totalFP / total) * 100).toFixed(1) : '0.0';
+            const fnPct = total > 0 ? ((totalFN / total) * 100).toFixed(1) : '0.0';
+
+            // Format lengths (convert to km if > 1000m)
+            const formatLength = (m) => {
+                return m >= 1000 ? `${(m / 1000).toFixed(2)} km` : `${m.toFixed(0)} m`;
+            };
+
+            // Generate HTML
+            container.innerHTML = `
+                <div class="cm-cell tp">
+                    <h3>True Positive (TP)</h3>
+                    <div class="value">${formatLength(totalTP)}</div>
+                    <div class="percentage">${tpPct}%</div>
+                </div>
+                <div class="cm-cell fp">
+                    <h3>False Positive (FP)</h3>
+                    <div class="value">${formatLength(totalFP)}</div>
+                    <div class="percentage">${fpPct}%</div>
+                </div>
+                <div class="cm-cell fn">
+                    <h3>False Negative (FN)</h3>
+                    <div class="value">${formatLength(totalFN)}</div>
+                    <div class="percentage">${fnPct}%</div>
+                </div>
+                <div class="cm-cell total">
+                    <h3>Total Evaluated</h3>
+                    <div class="value">${formatLength(total)}</div>
+                    <div class="percentage">100%</div>
+                </div>
+            `;
+
+            // Show the section
+            section.style.display = 'block';
+        }
+
+        function createSparkline(values, width, height, color) {
+            if (values.length === 0) return '';
+            
+            // Use 0-1 range for percentage metrics to show absolute scale differences
+            const min = 0;
+            const max = 1;
+            const range = max - min;
+            
+            // Create points for the line
+            const points = values.map((val, idx) => {
+                const x = (idx / (values.length - 1)) * width;
+                const y = height - ((val - min) / range) * height;
+                return `${x},${y}`;
+            }).join(' ');
+            
+            // Create area fill points (close the path at bottom)
+            const areaPoints = points + ` ${width},${height} 0,${height}`;
+            
+            // Add median line for reference
+            const sortedVals = [...values].sort((a, b) => a - b);
+            const median = sortedVals[Math.floor(sortedVals.length / 2)];
+            const medianY = height - ((median - min) / range) * height;
+            
+            return `
+                <svg width="${width}" height="${height}" style="display: block;">
+                    <defs>
+                        <linearGradient id="sparkGradient-${color.replace('#', '')}" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:${color};stop-opacity:0.4" />
+                            <stop offset="100%" style="stop-color:${color};stop-opacity:0.05" />
+                        </linearGradient>
+                    </defs>
+                    <line x1="0" y1="${medianY}" x2="${width}" y2="${medianY}" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="2,2" />
+                    <polygon points="${areaPoints}" fill="url(#sparkGradient-${color.replace('#', '')})" />
+                    <polyline points="${points}" fill="none" stroke="${color}" stroke-width="1.5" />
+                </svg>
+            `;
         }
 
         function renderStats() {
@@ -548,14 +1351,25 @@
             metricKeys.forEach((key, idx) => {
                 const s = stats[key];
                 const cfg = metricsConfig[key];
+                
+                // Get all values for sparkline and SORT them to show distribution
+                const values = data.map(d => d[key] || 0).sort((a, b) => a - b);
+                
                 const card = document.createElement('div');
                 card.className = 'stat-card';
+                
+                // Create sparkline SVG
+                const sparklineWidth = 80;
+                const sparklineHeight = 30;
+                const sparklineSVG = createSparkline(values, sparklineWidth, sparklineHeight, colors[idx]);
+                
                 card.innerHTML = `
                     <div class="stat-label">
                         <span class="stat-dot" style="background: ${colors[idx]}"></span>
                         ${cfg.label}
                     </div>
                     <div class="stat-value">${formatValue(s.avg, cfg.isPercentage)}</div>
+                    <div class="stat-sparkline">${sparklineSVG}</div>
                     <div class="stat-range">
                         Range: ${formatValue(s.min, cfg.isPercentage)} - ${formatValue(s.max, cfg.isPercentage)}
                     </div>
@@ -566,11 +1380,111 @@
             statsSection.style.display = 'grid';
         }
 
-        function renderHeatmap() {
+        let map = null;
+        let tileLayer = null;
+        let rectangles = [];
+
+        function renderMap(filteredData = data) {
             const metricKey = document.getElementById('metric-select').value;
-            const filterThreshold = parseFloat(document.getElementById('filter-threshold').value);
-            const isLength = metricKey.includes('length');
-            const threshold = isLength ? filterThreshold : filterThreshold / 100;
+            const container = document.getElementById('map-container');
+            
+            // Update metric label
+            document.getElementById('spatial-metric-label').textContent = metricsConfig[metricKey].label;
+
+            // Initialize map if not already done
+            if (!map) {
+                // Calculate center from data
+                const lats = data.map(t => t.lat);
+                const lons = data.map(t => t.lon);
+                const centerLat = (Math.max(...lats) + Math.min(...lats)) / 2;
+                const centerLon = (Math.max(...lons) + Math.min(...lons)) / 2;
+
+                map = L.map('map-container').setView([centerLat, centerLon], 15);
+                
+                // Add tile layer
+                tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+            }
+
+            // Clear existing rectangles
+            rectangles.forEach(rect => rect.remove());
+            rectangles = [];
+
+            // Calculate tile size (approximate, assuming consistent grid)
+            const sortedByX = [...data].sort((a, b) => a.xtile - b.xtile);
+            const sortedByY = [...data].sort((a, b) => a.ytile - b.ytile);
+            
+            // Estimate tile size from data spread
+            const lonSpan = Math.abs(sortedByX[sortedByX.length - 1].lon - sortedByX[0].lon) / gridLayout.cols;
+            const latSpan = Math.abs(sortedByY[sortedByY.length - 1].lat - sortedByY[0].lat) / gridLayout.rows;
+
+            // Draw rectangles for each tile
+            data.forEach(tile => {
+                const value = tile[metricKey] || 0;
+                const color = getHeatmapColor(value, metricKey);
+                
+                // Create bounds (tile corners)
+                const bounds = [
+                    [tile.lat - latSpan / 2, tile.lon - lonSpan / 2],
+                    [tile.lat + latSpan / 2, tile.lon + lonSpan / 2]
+                ];
+
+                const rectangle = L.rectangle(bounds, {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 0.6,
+                    weight: 1,
+                    opacity: 0.8
+                }).addTo(map);
+
+                // Popup content
+                const popupContent = `
+                    <div style="font-family: sans-serif; min-width: 180px;">
+                        <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #10b981;">
+                            Tile ${tile.tile_id}
+                        </div>
+                        <div style="margin-bottom: 6px;">
+                            <strong>${metricsConfig[metricKey].label}:</strong> 
+                            ${formatValue(value, metricsConfig[metricKey].isPercentage)}
+                        </div>
+                        <div style="font-size: 12px; padding-top: 6px; border-top: 1px solid #ddd;">
+                            <div style="margin-bottom: 3px;"><strong>F1:</strong> ${formatValue(tile.f1_score, true)}</div>
+                            <div style="margin-bottom: 3px;"><strong>Precision:</strong> ${formatValue(tile.precision, true)}</div>
+                            <div style="margin-bottom: 3px;"><strong>Recall:</strong> ${formatValue(tile.recall, true)}</div>
+                            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #ddd; color: #666; font-size: 11px;">
+                                Position: (${tile.xtile}, ${tile.ytile})<br>
+                                Coords: ${tile.lat.toFixed(6)}°, ${tile.lon.toFixed(6)}°
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                rectangle.bindPopup(popupContent);
+                
+                // Hover effect
+                rectangle.on('mouseover', function() {
+                    this.setStyle({ weight: 3, fillOpacity: 0.8 });
+                });
+                
+                rectangle.on('mouseout', function() {
+                    this.setStyle({ weight: 1, fillOpacity: 0.6 });
+                });
+
+                rectangles.push(rectangle);
+            });
+
+            // Fit bounds to show all tiles
+            if (rectangles.length > 0) {
+                const group = L.featureGroup(rectangles);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+
+        function renderHeatmap(filteredData = data) {
+            const metricKey = document.getElementById('metric-select').value;
+            const filteredIds = new Set(filteredData.map(t => t.tile_id));
 
             const grid = document.getElementById('heatmap-grid');
             grid.innerHTML = '';
@@ -587,34 +1501,54 @@
 
                     if (!tile) {
                         cell.classList.add('empty');
+                    } else if (!filteredIds.has(tile.tile_id)) {
+                        // Tile filtered out - show as grayed out
+                        cell.style.backgroundColor = 'rgba(100, 100, 100, 0.15)';
+                        cell.style.opacity = '0.4';
+                        cell.textContent = String(tile.tile_id).substring(0, 3);
                     } else {
                         const value = tile[metricKey] || 0;
-                        if (value < threshold) {
-                            cell.style.opacity = '0.3';
-                        }
 
                         const bgColor = getHeatmapColor(value, metricKey);
                         cell.style.backgroundColor = bgColor;
                         cell.textContent = String(tile.tile_id).substring(0, 3);
 
-                        cell.addEventListener('mouseenter', () => {
-                            const tooltip = cell.querySelector('.tooltip') || (() => {
-                                const t = document.createElement('div');
-                                t.className = 'tooltip show';
-                                t.innerHTML = `
-                                    <div><strong>${tile.tile_id}</strong></div>
-                                    <div>${formatValue(value, metricsConfig[metricKey].isPercentage)}</div>
-                                    <div style="color: #94a3b8;">(${tile.xtile}, ${tile.ytile})</div>
-                                `;
-                                cell.appendChild(t);
-                                return t;
-                            })();
-                            tooltip.classList.add('show');
+                        let tooltip = null;
+                        cell.addEventListener('mouseenter', (e) => {
+                            tooltip = document.createElement('div');
+                            tooltip.style.position = 'fixed';
+                            tooltip.style.left = `${e.clientX + 12}px`;
+                            tooltip.style.top = `${e.clientY - 12}px`;
+                            tooltip.style.background = 'rgba(0, 0, 0, 0.95)';
+                            tooltip.style.color = '#fff';
+                            tooltip.style.padding = '10px 14px';
+                            tooltip.style.borderRadius = '6px';
+                            tooltip.style.fontSize = '12px';
+                            tooltip.style.zIndex = '10000';
+                            tooltip.style.pointerEvents = 'none';
+                            tooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                            tooltip.style.minWidth = '150px';
+                            tooltip.innerHTML = `
+                                <div style="font-weight: bold; margin-bottom: 6px; color: #10b981;">Tile ${tile.tile_id}</div>
+                                <div style="margin-bottom: 4px;"><strong>${metricsConfig[metricKey].label}:</strong> ${formatValue(value, metricsConfig[metricKey].isPercentage)}</div>
+                                <div style="font-size: 10px; color: #94a3b8; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.1);">Position: Col ${col}, Row ${row}</div>
+                                <div style="font-size: 10px; color: #94a3b8;">Coords: (${tile.xtile}, ${tile.ytile})</div>
+                            `;
+                            document.body.appendChild(tooltip);
+                        });
+
+                        cell.addEventListener('mousemove', (e) => {
+                            if (tooltip) {
+                                tooltip.style.left = `${e.clientX + 12}px`;
+                                tooltip.style.top = `${e.clientY - 12}px`;
+                            }
                         });
 
                         cell.addEventListener('mouseleave', () => {
-                            const tooltip = cell.querySelector('.tooltip');
-                            if (tooltip) tooltip.classList.remove('show');
+                            if (tooltip) {
+                                document.body.removeChild(tooltip);
+                                tooltip = null;
+                            }
                         });
                     }
 
@@ -622,87 +1556,1274 @@
                 }
             }
 
-            document.getElementById('metric-label').textContent = metricsConfig[metricKey].label;
+            document.getElementById('spatial-metric-label').textContent = metricsConfig[metricKey].label;
         }
 
-        function renderScatter() {
-            const metricKey = document.getElementById('metric-select').value;
-            const sortKey = document.getElementById('sort-select').value;
-            const cfg = metricsConfig[metricKey];
-
-            const sorted = [...data].sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0)).slice(0, 50);
+        function renderScatter(filteredData = data) {
             const plot = document.getElementById('scatter-plot');
             plot.innerHTML = '';
 
-            const maxValue = Math.max(...data.map(d => d[metricKey] || 0));
+            // SVG dimensions (compact for side-by-side layout)
+            const width = 550;
+            const height = 500;
+            const margin = { top: 20, right: 20, bottom: 60, left: 70 };
+            const plotWidth = width - margin.left - margin.right;
+            const plotHeight = height - margin.top - margin.bottom;
 
-            sorted.forEach((tile, idx) => {
-                const value = tile[metricKey] || 0;
-                const normalizedValue = value / (maxValue || 1);
-                const dot = document.createElement('div');
-                dot.className = 'scatter-dot';
-                dot.style.cssText = `
-                    position: absolute;
-                    left: ${(idx / 50) * 100}%;
-                    bottom: ${normalizedValue * 90}%;
-                    width: 12px;
-                    height: 12px;
-                    background: #3b82f6;
-                    border-radius: 50%;
-                    cursor: pointer;
-                    transition: all 0.2s;
-                    opacity: 0.7;
-                `;
+            // Create SVG
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('width', width);
+            svg.setAttribute('height', height);
+            svg.style.display = 'block';
+            svg.style.margin = '0 auto';
+            plot.appendChild(svg);
 
-                dot.addEventListener('mouseenter', () => {
-                    dot.style.width = '16px';
-                    dot.style.height = '16px';
-                    dot.style.opacity = '1';
-                    const tooltip = document.createElement('div');
-                    tooltip.className = 'tooltip show';
+            // Create group for plot area
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('transform', `translate(${margin.left},${margin.top})`);
+            svg.appendChild(g);
+
+            // Scales (0-100% for both axes)
+            const xScale = (val) => (val / 100) * plotWidth;
+            const yScale = (val) => plotHeight - (val / 100) * plotHeight;
+
+            // Draw axes background
+            const axisRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            axisRect.setAttribute('x', 0);
+            axisRect.setAttribute('y', 0);
+            axisRect.setAttribute('width', plotWidth);
+            axisRect.setAttribute('height', plotHeight);
+            axisRect.setAttribute('fill', 'rgba(15, 23, 42, 0.3)');
+            axisRect.setAttribute('stroke', '#334155');
+            axisRect.setAttribute('stroke-width', 1);
+            g.appendChild(axisRect);
+
+            // Draw grid lines
+            for (let i = 0; i <= 100; i += 10) {
+                // Vertical grid lines
+                const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                vLine.setAttribute('x1', xScale(i));
+                vLine.setAttribute('y1', 0);
+                vLine.setAttribute('x2', xScale(i));
+                vLine.setAttribute('y2', plotHeight);
+                vLine.setAttribute('stroke', i % 20 === 0 ? '#334155' : '#1e293b');
+                vLine.setAttribute('stroke-width', 1);
+                vLine.setAttribute('opacity', 0.5);
+                g.appendChild(vLine);
+
+                // Horizontal grid lines
+                const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                hLine.setAttribute('x1', 0);
+                hLine.setAttribute('y1', yScale(i));
+                hLine.setAttribute('x2', plotWidth);
+                hLine.setAttribute('y2', yScale(i));
+                hLine.setAttribute('stroke', i % 20 === 0 ? '#334155' : '#1e293b');
+                hLine.setAttribute('stroke-width', 1);
+                hLine.setAttribute('opacity', 0.5);
+                g.appendChild(hLine);
+            }
+
+            // Draw diagonal reference line (Precision = Recall)
+            const diagonal = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            diagonal.setAttribute('x1', xScale(0));
+            diagonal.setAttribute('y1', yScale(0));
+            diagonal.setAttribute('x2', xScale(100));
+            diagonal.setAttribute('y2', yScale(100));
+            diagonal.setAttribute('stroke', '#10b981');
+            diagonal.setAttribute('stroke-width', 2);
+            diagonal.setAttribute('stroke-dasharray', '6,4');
+            diagonal.setAttribute('opacity', 0.4);
+            g.appendChild(diagonal);
+
+            // Draw axes borders (make them more prominent)
+            const xAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            xAxis.setAttribute('x1', 0);
+            xAxis.setAttribute('y1', plotHeight);
+            xAxis.setAttribute('x2', plotWidth);
+            xAxis.setAttribute('y2', plotHeight);
+            xAxis.setAttribute('stroke', '#64748b');
+            xAxis.setAttribute('stroke-width', 2);
+            g.appendChild(xAxis);
+
+            const yAxis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            yAxis.setAttribute('x1', 0);
+            yAxis.setAttribute('y1', 0);
+            yAxis.setAttribute('x2', 0);
+            yAxis.setAttribute('y2', plotHeight);
+            yAxis.setAttribute('stroke', '#64748b');
+            yAxis.setAttribute('stroke-width', 2);
+            g.appendChild(yAxis);
+
+            // Add axis labels and ticks
+            for (let i = 0; i <= 100; i += 20) {
+                // X-axis ticks and labels
+                const xTick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                xTick.setAttribute('x1', xScale(i));
+                xTick.setAttribute('y1', plotHeight);
+                xTick.setAttribute('x2', xScale(i));
+                xTick.setAttribute('y2', plotHeight + 6);
+                xTick.setAttribute('stroke', '#94a3b8');
+                xTick.setAttribute('stroke-width', 2);
+                g.appendChild(xTick);
+
+                const xLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                xLabel.setAttribute('x', xScale(i));
+                xLabel.setAttribute('y', plotHeight + 24);
+                xLabel.setAttribute('text-anchor', 'middle');
+                xLabel.setAttribute('fill', '#cbd5e1');
+                xLabel.setAttribute('font-size', '13px');
+                xLabel.setAttribute('font-weight', '500');
+                xLabel.textContent = `${i}%`;
+                g.appendChild(xLabel);
+
+                // Y-axis ticks and labels
+                const yTick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                yTick.setAttribute('x1', -6);
+                yTick.setAttribute('y1', yScale(i));
+                yTick.setAttribute('x2', 0);
+                yTick.setAttribute('y2', yScale(i));
+                yTick.setAttribute('stroke', '#94a3b8');
+                yTick.setAttribute('stroke-width', 2);
+                g.appendChild(yTick);
+
+                const yLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                yLabel.setAttribute('x', -12);
+                yLabel.setAttribute('y', yScale(i));
+                yLabel.setAttribute('text-anchor', 'end');
+                yLabel.setAttribute('dominant-baseline', 'middle');
+                yLabel.setAttribute('fill', '#cbd5e1');
+                yLabel.setAttribute('font-size', '13px');
+                yLabel.setAttribute('font-weight', '500');
+                yLabel.textContent = `${i}%`;
+                g.appendChild(yLabel);
+            }
+
+            // Axis titles
+            const xTitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            xTitle.setAttribute('x', plotWidth / 2);
+            xTitle.setAttribute('y', plotHeight + 50);
+            xTitle.setAttribute('text-anchor', 'middle');
+            xTitle.setAttribute('fill', '#f1f5f9');
+            xTitle.setAttribute('font-size', '15px');
+            xTitle.setAttribute('font-weight', 'bold');
+            xTitle.textContent = 'Precision (%)';
+            g.appendChild(xTitle);
+
+            const yTitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            yTitle.setAttribute('x', -plotHeight / 2);
+            yTitle.setAttribute('y', -50);
+            yTitle.setAttribute('text-anchor', 'middle');
+            yTitle.setAttribute('fill', '#f1f5f9');
+            yTitle.setAttribute('font-size', '15px');
+            yTitle.setAttribute('font-weight', 'bold');
+            yTitle.setAttribute('transform', 'rotate(-90)');
+            yTitle.textContent = 'Recall (%)';
+            g.appendChild(yTitle);
+
+            // Helper function to get color based on F1 score
+            const getF1Color = (f1) => {
+                if (f1 >= 0.9) return '#10b981'; // Green - Excellent
+                if (f1 >= 0.7) return '#3b82f6'; // Blue - Good
+                if (f1 >= 0.5) return '#f59e0b'; // Orange - Fair
+                return '#ef4444'; // Red - Poor
+            };
+
+            // Plot points for each filtered tile
+            filteredData.forEach(tile => {
+                const precision = (tile.precision * 100) || 0;
+                const recall = (tile.recall * 100) || 0;
+                const f1 = tile.f1_score || 0;
+                const iou = tile.iou || 0;
+
+                const cx = xScale(precision);
+                const cy = yScale(recall);
+
+                // Get color based on F1 score
+                const color = getF1Color(f1);
+
+                const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', cx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', 6);
+                circle.setAttribute('fill', color);
+                circle.setAttribute('stroke', '#fff');
+                circle.setAttribute('stroke-width', 1.5);
+                circle.setAttribute('opacity', 0.8);
+                circle.style.cursor = 'pointer';
+                circle.style.transition = 'all 0.2s';
+
+                // Tooltip on hover
+                let tooltip = null;
+                circle.addEventListener('mouseenter', (e) => {
+                    circle.setAttribute('r', 9);
+                    circle.setAttribute('stroke-width', 2.5);
+                    circle.setAttribute('opacity', 1);
+
+                    // Create tooltip
+                    tooltip = document.createElement('div');
+                    tooltip.style.position = 'fixed';
+                    tooltip.style.left = `${e.clientX + 12}px`;
+                    tooltip.style.top = `${e.clientY - 12}px`;
+                    tooltip.style.background = 'rgba(0, 0, 0, 0.95)';
+                    tooltip.style.color = '#fff';
+                    tooltip.style.padding = '12px 16px';
+                    tooltip.style.borderRadius = '8px';
+                    tooltip.style.fontSize = '13px';
+                    tooltip.style.zIndex = '10000';
+                    tooltip.style.pointerEvents = 'none';
+                    tooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                    tooltip.style.border = `2px solid ${color}`;
                     tooltip.innerHTML = `
-                        <div><strong>${tile.tile_id}</strong></div>
-                        <div>${formatValue(value, cfg.isPercentage)}</div>
+                        <div style="font-weight: bold; margin-bottom: 6px; color: ${color};">${tile.tile_id}</div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">Precision:</span> <strong>${precision.toFixed(1)}%</strong></div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">Recall:</span> <strong>${recall.toFixed(1)}%</strong></div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">F1 Score:</span> <strong>${(f1 * 100).toFixed(1)}%</strong></div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">IoU:</span> <strong>${(iou * 100).toFixed(1)}%</strong></div>
                     `;
-                    tooltip.style.cssText = `
-                        position: absolute;
-                        bottom: 100%;
-                        left: 50%;
-                        transform: translateX(-50%);
-                        background: rgba(0,0,0,0.9);
-                        color: white;
-                        padding: 8px 12px;
-                        border-radius: 4px;
-                        font-size: 11px;
-                        white-space: nowrap;
-                        margin-bottom: 8px;
-                    `;
-                    dot.appendChild(tooltip);
+                    document.body.appendChild(tooltip);
                 });
 
-                dot.addEventListener('mouseleave', () => {
-                    dot.style.width = '12px';
-                    dot.style.height = '12px';
-                    dot.style.opacity = '0.7';
-                    const tooltip = dot.querySelector('.tooltip');
-                    if (tooltip) tooltip.remove();
+                circle.addEventListener('mousemove', (e) => {
+                    if (tooltip) {
+                        tooltip.style.left = `${e.clientX + 12}px`;
+                        tooltip.style.top = `${e.clientY - 12}px`;
+                    }
                 });
 
-                plot.appendChild(dot);
+                circle.addEventListener('mouseleave', () => {
+                    circle.setAttribute('r', 6);
+                    circle.setAttribute('stroke-width', 1.5);
+                    circle.setAttribute('opacity', 0.8);
+
+                    if (tooltip) {
+                        document.body.removeChild(tooltip);
+                        tooltip = null;
+                    }
+                });
+
+                g.appendChild(circle);
             });
 
-            document.getElementById('scatter-label').textContent = cfg.label;
+            // Create legend in separate container below scatter plot
+            const legendContainer = document.getElementById('scatter-legend');
+            legendContainer.innerHTML = '';
+            legendContainer.style.cssText = 'display: flex; justify-content: center; gap: 20px; padding: 10px; background: rgba(30, 41, 59, 0.5); border-radius: 8px;';
+            
+            const legendData = [
+                { label: 'Excellent (≥90%)', color: '#10b981' },
+                { label: 'Good (70-90%)', color: '#3b82f6' },
+                { label: 'Fair (50-70%)', color: '#f59e0b' },
+                { label: 'Poor (<50%)', color: '#ef4444' }
+            ];
+
+            legendData.forEach(item => {
+                const legendItem = document.createElement('div');
+                legendItem.style.cssText = 'display: flex; align-items: center; gap: 6px;';
+                legendItem.innerHTML = `
+                    <div style="width: 12px; height: 12px; border-radius: 50%; background: ${item.color}; border: 2px solid white;"></div>
+                    <span style="font-size: 12px; color: #e2e8f0;">${item.label}</span>
+                `;
+                legendContainer.appendChild(legendItem);
+            });
+
+            // Render the geographic map
+            renderScatterMap(filteredData);
         }
 
-        function renderTable() {
-            const metricKey = document.getElementById('metric-select').value;
-            const sortKey = document.getElementById('sort-select').value;
-            const filterThreshold = parseFloat(document.getElementById('filter-threshold').value);
-            const isLength = metricKey.includes('length');
-            const threshold = isLength ? filterThreshold : filterThreshold / 100;
+        function renderScatterMap(filteredData = data) {
+            const container = document.getElementById('scatter-map-container');
+            container.innerHTML = ''; // Clear previous map
 
-            const sorted = [...data]
-                .filter(tile => (tile[metricKey] || 0) >= threshold)
+            // Calculate bounds
+            const lats = data.map(t => t.lat);
+            const lons = data.map(t => t.lon);
+            const centerLat = (Math.max(...lats) + Math.min(...lats)) / 2;
+            const centerLon = (Math.max(...lons) + Math.min(...lons)) / 2;
+
+            // Create map
+            const scatterMap = L.map(container, {
+                zoomControl: true,
+                attributionControl: false
+            }).setView([centerLat, centerLon], 15);
+
+            // Add base map with lower opacity
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                opacity: 0.3
+            }).addTo(scatterMap);
+
+            // Helper to get F1 color (same as scatter plot)
+            const getF1Color = (f1) => {
+                if (f1 >= 0.9) return '#10b981'; // Green - Excellent
+                if (f1 >= 0.7) return '#3b82f6'; // Blue - Good
+                if (f1 >= 0.5) return '#f59e0b'; // Orange - Fair
+                return '#ef4444'; // Red - Poor
+            };
+
+            // Calculate tile size
+            const cols = Math.max(...data.map(d => d.xtile)) - Math.min(...data.map(d => d.xtile)) + 1;
+            const rows = Math.max(...data.map(d => d.ytile)) - Math.min(...data.map(d => d.ytile)) + 1;
+            const maxLat = Math.max(...lats);
+            const minLat = Math.min(...lats);
+            const maxLon = Math.max(...lons);
+            const minLon = Math.min(...lons);
+            const lonSpan = (maxLon - minLon) / cols;
+            const latSpan = (maxLat - minLat) / rows;
+
+            const filteredIds = new Set(filteredData.map(t => t.tile_id));
+
+            // Draw tiles
+            data.forEach(tile => {
+                const tileLat = tile.lat;
+                const tileLon = tile.lon;
+                const bounds = [
+                    [tileLat - latSpan / 2, tileLon - lonSpan / 2],
+                    [tileLat + latSpan / 2, tileLon + lonSpan / 2]
+                ];
+
+                const isFiltered = filteredIds.has(tile.tile_id);
+                const f1 = tile.f1_score || 0;
+                const color = getF1Color(f1);
+
+                const rectangle = L.rectangle(bounds, {
+                    color: isFiltered ? color : '#334155',
+                    weight: isFiltered ? 2 : 1,
+                    fillColor: isFiltered ? color : '#1e293b',
+                    fillOpacity: isFiltered ? 0.7 : 0.15
+                }).addTo(scatterMap);
+
+                if (isFiltered) {
+                    const precision = (tile.precision * 100) || 0;
+                    const recall = (tile.recall * 100) || 0;
+                    
+                    rectangle.bindPopup(`
+                        <div style="font-size: 12px;">
+                            <strong style="color: ${color};">Tile ${tile.tile_id}</strong><br>
+                            F1: ${(f1 * 100).toFixed(1)}%<br>
+                            Precision: ${precision.toFixed(1)}%<br>
+                            Recall: ${recall.toFixed(1)}%<br>
+                            Position: (${tile.xtile}, ${tile.ytile})
+                        </div>
+                    `);
+                }
+            });
+
+            // Fit bounds to filtered tiles
+            if (filteredData.length > 0) {
+                const bounds = filteredData.map(t => [
+                    [t.lat - latSpan / 2, t.lon - lonSpan / 2],
+                    [t.lat + latSpan / 2, t.lon + lonSpan / 2]
+                ]).flat();
+                scatterMap.fitBounds(bounds, { padding: [30, 30] });
+            }
+        }
+
+        function computeQuartiles(values) {
+            if (values.length === 0) return null;
+
+            const sorted = [...values].sort((a, b) => a - b);
+            const n = sorted.length;
+
+            const median = n % 2 === 0 
+                ? (sorted[n / 2 - 1] + sorted[n / 2]) / 2 
+                : sorted[Math.floor(n / 2)];
+
+            const q1Index = Math.floor(n * 0.25);
+            const q3Index = Math.floor(n * 0.75);
+            
+            const q1 = sorted[q1Index];
+            const q3 = sorted[q3Index];
+            const iqr = q3 - q1;
+
+            const min = sorted[0];
+            const max = sorted[n - 1];
+
+            // Identify outliers
+            const lowerBound = q1 - 1.5 * iqr;
+            const upperBound = q3 + 1.5 * iqr;
+            const outliers = sorted.filter(v => v < lowerBound || v > upperBound);
+
+            return { min, q1, median, q3, max, iqr, outliers, lowerBound, upperBound };
+        }
+
+        function renderDistributions(filteredData = data) {
+            const container = document.getElementById('distributions-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            const metrics = ['f1_score', 'precision', 'recall', 'iou'];
+            const width = 1100;
+            const height = 100;
+            const margin = { top: 10, right: 200, bottom: 40, left: 150 };
+            const plotWidth = width - margin.left - margin.right;
+            const plotHeight = height - margin.top - margin.bottom;
+
+            metrics.forEach(metric => {
+                // Extract values from filtered data
+                const values = filteredData.map(tile => (tile[metric] || 0) * 100); // Convert to percentage
+                const stats = computeQuartiles(values);
+                if (!stats) return;
+
+                // Create container for this metric
+                const row = document.createElement('div');
+                row.className = 'boxplot-row';
+
+                const label = document.createElement('div');
+                label.className = 'boxplot-label';
+                
+                // Add color indicator
+                const colorDot = document.createElement('span');
+                colorDot.style.cssText = 'width: 12px; height: 12px; border-radius: 50%; display: inline-block;';
+                if (metric === 'f1_score') colorDot.style.background = '#3b82f6';
+                else if (metric === 'precision') colorDot.style.background = '#10b981';
+                else if (metric === 'recall') colorDot.style.background = '#a855f7';
+                else if (metric === 'iou') colorDot.style.background = '#f97316';
+                
+                label.appendChild(colorDot);
+                label.appendChild(document.createTextNode(metricsConfig[metric]?.label || metric));
+                row.appendChild(label);
+
+                // Create SVG
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', width);
+                svg.setAttribute('height', height);
+                svg.setAttribute('class', 'boxplot-svg');
+                row.appendChild(svg);
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                g.setAttribute('transform', `translate(${margin.left},${margin.top})`);
+                svg.appendChild(g);
+
+                // Scale (0-100%)
+                const xScale = (val) => (val / 100) * plotWidth;
+                const centerY = plotHeight / 2;
+
+                // Draw background
+                const bgRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                bgRect.setAttribute('x', 0);
+                bgRect.setAttribute('y', 0);
+                bgRect.setAttribute('width', plotWidth);
+                bgRect.setAttribute('height', plotHeight);
+                bgRect.setAttribute('fill', 'rgba(15, 23, 42, 0.3)');
+                bgRect.setAttribute('stroke', '#334155');
+                bgRect.setAttribute('stroke-width', 1);
+                bgRect.setAttribute('rx', 4);
+                g.appendChild(bgRect);
+
+                // Draw axis line
+                const axis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                axis.setAttribute('x1', 0);
+                axis.setAttribute('y1', centerY);
+                axis.setAttribute('x2', plotWidth);
+                axis.setAttribute('y2', centerY);
+                axis.setAttribute('stroke', '#475569');
+                axis.setAttribute('stroke-width', 1);
+                g.appendChild(axis);
+
+                // Draw whiskers
+                const whiskerLeft = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                whiskerLeft.setAttribute('x1', xScale(Math.max(stats.min, stats.lowerBound)));
+                whiskerLeft.setAttribute('y1', centerY);
+                whiskerLeft.setAttribute('x2', xScale(stats.q1));
+                whiskerLeft.setAttribute('y2', centerY);
+                whiskerLeft.setAttribute('stroke', '#10b981');
+                whiskerLeft.setAttribute('stroke-width', 2);
+                g.appendChild(whiskerLeft);
+
+                const whiskerRight = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                whiskerRight.setAttribute('x1', xScale(stats.q3));
+                whiskerRight.setAttribute('y1', centerY);
+                whiskerRight.setAttribute('x2', xScale(Math.min(stats.max, stats.upperBound)));
+                whiskerRight.setAttribute('y2', centerY);
+                whiskerRight.setAttribute('stroke', '#10b981');
+                whiskerRight.setAttribute('stroke-width', 2);
+                g.appendChild(whiskerRight);
+
+                // Draw whisker end caps
+                const capSize = 8;
+                const leftCap = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                leftCap.setAttribute('x1', xScale(Math.max(stats.min, stats.lowerBound)));
+                leftCap.setAttribute('y1', centerY - capSize);
+                leftCap.setAttribute('x2', xScale(Math.max(stats.min, stats.lowerBound)));
+                leftCap.setAttribute('y2', centerY + capSize);
+                leftCap.setAttribute('stroke', '#10b981');
+                leftCap.setAttribute('stroke-width', 2);
+                g.appendChild(leftCap);
+
+                const rightCap = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                rightCap.setAttribute('x1', xScale(Math.min(stats.max, stats.upperBound)));
+                rightCap.setAttribute('y1', centerY - capSize);
+                rightCap.setAttribute('x2', xScale(Math.min(stats.max, stats.upperBound)));
+                rightCap.setAttribute('y2', centerY + capSize);
+                rightCap.setAttribute('stroke', '#10b981');
+                rightCap.setAttribute('stroke-width', 2);
+                g.appendChild(rightCap);
+
+                // Draw box (Q1 to Q3)
+                const boxHeight = 30;
+                const box = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                box.setAttribute('x', xScale(stats.q1));
+                box.setAttribute('y', centerY - boxHeight / 2);
+                box.setAttribute('width', xScale(stats.q3) - xScale(stats.q1));
+                box.setAttribute('height', boxHeight);
+                box.setAttribute('fill', 'rgba(16, 185, 129, 0.3)');
+                box.setAttribute('stroke', '#10b981');
+                box.setAttribute('stroke-width', 2);
+                box.setAttribute('rx', 4);
+                g.appendChild(box);
+
+                // Draw median line
+                const medianLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                medianLine.setAttribute('x1', xScale(stats.median));
+                medianLine.setAttribute('y1', centerY - boxHeight / 2);
+                medianLine.setAttribute('x2', xScale(stats.median));
+                medianLine.setAttribute('y2', centerY + boxHeight / 2);
+                medianLine.setAttribute('stroke', '#ef4444');
+                medianLine.setAttribute('stroke-width', 3);
+                g.appendChild(medianLine);
+
+                // Draw outliers
+                stats.outliers.forEach(outlier => {
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', xScale(outlier));
+                    circle.setAttribute('cy', centerY);
+                    circle.setAttribute('r', 5);
+                    circle.setAttribute('fill', '#ef4444');
+                    circle.setAttribute('stroke', '#fff');
+                    circle.setAttribute('stroke-width', 1.5);
+                    g.appendChild(circle);
+                });
+
+                // Add tick labels every 20%
+                for (let i = 0; i <= 100; i += 20) {
+                    const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    tick.setAttribute('x1', xScale(i));
+                    tick.setAttribute('y1', plotHeight);
+                    tick.setAttribute('x2', xScale(i));
+                    tick.setAttribute('y2', plotHeight + 6);
+                    tick.setAttribute('stroke', '#64748b');
+                    tick.setAttribute('stroke-width', 1);
+                    g.appendChild(tick);
+
+                    const tickLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    tickLabel.setAttribute('x', xScale(i));
+                    tickLabel.setAttribute('y', plotHeight + 20);
+                    tickLabel.setAttribute('text-anchor', 'middle');
+                    tickLabel.setAttribute('fill', '#94a3b8');
+                    tickLabel.setAttribute('font-size', '11px');
+                    tickLabel.textContent = `${i}%`;
+                    g.appendChild(tickLabel);
+                }
+
+                // Add statistics text (Q1, Median, Q3)
+                const statsText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                statsText.setAttribute('x', plotWidth + 10);
+                statsText.setAttribute('y', centerY);
+                statsText.setAttribute('dominant-baseline', 'middle');
+                statsText.setAttribute('fill', '#cbd5e1');
+                statsText.setAttribute('font-size', '11px');
+                statsText.innerHTML = `Q1: ${stats.q1.toFixed(1)}% | Med: ${stats.median.toFixed(1)}% | Q3: ${stats.q3.toFixed(1)}%`;
+                statsText.textContent = `Q1: ${stats.q1.toFixed(1)}% | Med: ${stats.median.toFixed(1)}% | Q3: ${stats.q3.toFixed(1)}%`;
+                g.appendChild(statsText);
+
+                // Add tooltip to box
+                box.style.cursor = 'pointer';
+                let tooltip = null;
+                box.addEventListener('mouseenter', (e) => {
+                    box.setAttribute('fill', 'rgba(16, 185, 129, 0.5)');
+                    
+                    tooltip = document.createElement('div');
+                    tooltip.style.position = 'fixed';
+                    tooltip.style.left = `${e.clientX + 12}px`;
+                    tooltip.style.top = `${e.clientY - 12}px`;
+                    tooltip.style.background = 'rgba(0, 0, 0, 0.95)';
+                    tooltip.style.color = '#fff';
+                    tooltip.style.padding = '12px 16px';
+                    tooltip.style.borderRadius = '8px';
+                    tooltip.style.fontSize = '12px';
+                    tooltip.style.zIndex = '10000';
+                    tooltip.style.pointerEvents = 'none';
+                    tooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                    tooltip.style.border = '2px solid #10b981';
+                    tooltip.innerHTML = `
+                        <div style="font-weight: bold; margin-bottom: 6px; color: #10b981;">${metricsConfig[metric].label}</div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">Min:</span> <strong>${stats.min.toFixed(1)}%</strong></div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">Q1:</span> <strong>${stats.q1.toFixed(1)}%</strong></div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">Median:</span> <strong>${stats.median.toFixed(1)}%</strong></div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">Q3:</span> <strong>${stats.q3.toFixed(1)}%</strong></div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">Max:</span> <strong>${stats.max.toFixed(1)}%</strong></div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">IQR:</span> <strong>${stats.iqr.toFixed(1)}%</strong></div>
+                        <div style="margin: 3px 0;"><span style="color: #94a3b8;">Outliers:</span> <strong>${stats.outliers.length}</strong></div>
+                    `;
+                    document.body.appendChild(tooltip);
+                });
+
+                box.addEventListener('mousemove', (e) => {
+                    if (tooltip) {
+                        tooltip.style.left = `${e.clientX + 12}px`;
+                        tooltip.style.top = `${e.clientY - 12}px`;
+                    }
+                });
+
+                box.addEventListener('mouseleave', () => {
+                    box.setAttribute('fill', 'rgba(16, 185, 129, 0.3)');
+                    
+                    if (tooltip) {
+                        document.body.removeChild(tooltip);
+                        tooltip = null;
+                    }
+                });
+
+                container.appendChild(row);
+            });
+        }
+
+        function renderComposition(filteredData = data) {
+            const container = document.getElementById('composition-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            // Sort filtered data by F1 score and take top 50
+            const sorted = [...filteredData]
+                .sort((a, b) => (b.f1_score || 0) - (a.f1_score || 0))
+                .slice(0, 50);
+
+            sorted.forEach(tile => {
+                const tp = tile.tp_length_m || 0;
+                const fp = tile.fp_length_m || 0;
+                const fn = tile.fn_length_m || 0;
+                const total = tp + fp + fn;
+
+                if (total === 0) return;
+
+                // Calculate percentages
+                const tpPct = (tp / total) * 100;
+                const fpPct = (fp / total) * 100;
+                const fnPct = (fn / total) * 100;
+
+                // Create row
+                const row = document.createElement('div');
+                row.className = 'composition-bar-row';
+
+                // Label
+                const label = document.createElement('div');
+                label.className = 'composition-label';
+                label.textContent = tile.tile_id;
+                row.appendChild(label);
+
+                // Stacked bar
+                const bar = document.createElement('div');
+                bar.className = 'composition-bar';
+
+                // TP segment
+                if (tpPct > 0) {
+                    const tpSegment = document.createElement('div');
+                    tpSegment.className = 'composition-segment tp';
+                    tpSegment.style.width = `${tpPct}%`;
+                    
+                    let tooltip = null;
+                    tpSegment.addEventListener('mouseenter', (e) => {
+                        tooltip = document.createElement('div');
+                        tooltip.style.position = 'fixed';
+                        tooltip.style.left = `${e.clientX + 12}px`;
+                        tooltip.style.top = `${e.clientY - 12}px`;
+                        tooltip.style.background = 'rgba(0, 0, 0, 0.95)';
+                        tooltip.style.color = '#fff';
+                        tooltip.style.padding = '10px 14px';
+                        tooltip.style.borderRadius = '6px';
+                        tooltip.style.fontSize = '12px';
+                        tooltip.style.zIndex = '10000';
+                        tooltip.style.pointerEvents = 'none';
+                        tooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                        tooltip.style.border = '2px solid #10b981';
+                        tooltip.innerHTML = `
+                            <div style="font-weight: bold; margin-bottom: 4px; color: #10b981;">True Positive</div>
+                            <div><strong>${tp.toFixed(1)} m</strong> (${tpPct.toFixed(1)}%)</div>
+                        `;
+                        document.body.appendChild(tooltip);
+                    });
+
+                    tpSegment.addEventListener('mousemove', (e) => {
+                        if (tooltip) {
+                            tooltip.style.left = `${e.clientX + 12}px`;
+                            tooltip.style.top = `${e.clientY - 12}px`;
+                        }
+                    });
+
+                    tpSegment.addEventListener('mouseleave', () => {
+                        if (tooltip) {
+                            document.body.removeChild(tooltip);
+                            tooltip = null;
+                        }
+                    });
+
+                    bar.appendChild(tpSegment);
+                }
+
+                // FP segment
+                if (fpPct > 0) {
+                    const fpSegment = document.createElement('div');
+                    fpSegment.className = 'composition-segment fp';
+                    fpSegment.style.width = `${fpPct}%`;
+                    
+                    let tooltip = null;
+                    fpSegment.addEventListener('mouseenter', (e) => {
+                        tooltip = document.createElement('div');
+                        tooltip.style.position = 'fixed';
+                        tooltip.style.left = `${e.clientX + 12}px`;
+                        tooltip.style.top = `${e.clientY - 12}px`;
+                        tooltip.style.background = 'rgba(0, 0, 0, 0.95)';
+                        tooltip.style.color = '#fff';
+                        tooltip.style.padding = '10px 14px';
+                        tooltip.style.borderRadius = '6px';
+                        tooltip.style.fontSize = '12px';
+                        tooltip.style.zIndex = '10000';
+                        tooltip.style.pointerEvents = 'none';
+                        tooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                        tooltip.style.border = '2px solid #ef4444';
+                        tooltip.innerHTML = `
+                            <div style="font-weight: bold; margin-bottom: 4px; color: #ef4444;">False Positive</div>
+                            <div><strong>${fp.toFixed(1)} m</strong> (${fpPct.toFixed(1)}%)</div>
+                        `;
+                        document.body.appendChild(tooltip);
+                    });
+
+                    fpSegment.addEventListener('mousemove', (e) => {
+                        if (tooltip) {
+                            tooltip.style.left = `${e.clientX + 12}px`;
+                            tooltip.style.top = `${e.clientY - 12}px`;
+                        }
+                    });
+
+                    fpSegment.addEventListener('mouseleave', () => {
+                        if (tooltip) {
+                            document.body.removeChild(tooltip);
+                            tooltip = null;
+                        }
+                    });
+
+                    bar.appendChild(fpSegment);
+                }
+
+                // FN segment
+                if (fnPct > 0) {
+                    const fnSegment = document.createElement('div');
+                    fnSegment.className = 'composition-segment fn';
+                    fnSegment.style.width = `${fnPct}%`;
+                    
+                    let tooltip = null;
+                    fnSegment.addEventListener('mouseenter', (e) => {
+                        tooltip = document.createElement('div');
+                        tooltip.style.position = 'fixed';
+                        tooltip.style.left = `${e.clientX + 12}px`;
+                        tooltip.style.top = `${e.clientY - 12}px`;
+                        tooltip.style.background = 'rgba(0, 0, 0, 0.95)';
+                        tooltip.style.color = '#fff';
+                        tooltip.style.padding = '10px 14px';
+                        tooltip.style.borderRadius = '6px';
+                        tooltip.style.fontSize = '12px';
+                        tooltip.style.zIndex = '10000';
+                        tooltip.style.pointerEvents = 'none';
+                        tooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                        tooltip.style.border = '2px solid #f59e0b';
+                        tooltip.innerHTML = `
+                            <div style="font-weight: bold; margin-bottom: 4px; color: #f59e0b;">False Negative</div>
+                            <div><strong>${fn.toFixed(1)} m</strong> (${fnPct.toFixed(1)}%)</div>
+                        `;
+                        document.body.appendChild(tooltip);
+                    });
+
+                    fnSegment.addEventListener('mousemove', (e) => {
+                        if (tooltip) {
+                            tooltip.style.left = `${e.clientX + 12}px`;
+                            tooltip.style.top = `${e.clientY - 12}px`;
+                        }
+                    });
+
+                    fnSegment.addEventListener('mouseleave', () => {
+                        if (tooltip) {
+                            document.body.removeChild(tooltip);
+                            tooltip = null;
+                        }
+                    });
+
+                    bar.appendChild(fnSegment);
+                }
+
+                row.appendChild(bar);
+
+                // F1 score value on right
+                const value = document.createElement('div');
+                value.className = 'composition-value';
+                value.textContent = `F1: ${((tile.f1_score || 0) * 100).toFixed(1)}%`;
+                row.appendChild(value);
+
+                container.appendChild(row);
+            });
+        }
+
+        function computePearsonCorrelation(x, y) {
+            const n = x.length;
+            if (n === 0 || n !== y.length) return 0;
+
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = y.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+            const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+            const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
+
+            const numerator = n * sumXY - sumX * sumY;
+            const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+
+            return denominator === 0 ? 0 : numerator / denominator;
+        }
+
+        function renderCorrelation(filteredData = data) {
+            const container = document.getElementById('correlation-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            // Define metrics to correlate
+            const metrics = [
+                { key: 'f1_score', label: 'F1' },
+                { key: 'precision', label: 'Precision' },
+                { key: 'recall', label: 'Recall' },
+                { key: 'iou', label: 'IoU' },
+                { key: 'tp_length_m', label: 'TP (m)' },
+                { key: 'fp_length_m', label: 'FP (m)' },
+                { key: 'fn_length_m', label: 'FN (m)' }
+            ];
+
+            const n = metrics.length;
+
+            // Compute correlation matrix from filtered data
+            const correlations = [];
+            for (let i = 0; i < n; i++) {
+                correlations[i] = [];
+                for (let j = 0; j < n; j++) {
+                    const xValues = filteredData.map(tile => tile[metrics[i].key] || 0);
+                    const yValues = filteredData.map(tile => tile[metrics[j].key] || 0);
+                    correlations[i][j] = computePearsonCorrelation(xValues, yValues);
+                }
+            }
+
+            // Create grid
+            const grid = document.createElement('div');
+            grid.className = 'correlation-grid';
+            grid.style.gridTemplateColumns = `repeat(${n + 1}, auto)`;
+
+            // Top-left empty cell
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'correlation-cell header';
+            grid.appendChild(emptyCell);
+
+            // Column headers
+            for (let j = 0; j < n; j++) {
+                const header = document.createElement('div');
+                header.className = 'correlation-cell header';
+                header.textContent = metrics[j].label;
+                grid.appendChild(header);
+            }
+
+            // Rows
+            for (let i = 0; i < n; i++) {
+                // Row header
+                const rowHeader = document.createElement('div');
+                rowHeader.className = 'correlation-cell header';
+                rowHeader.textContent = metrics[i].label;
+                grid.appendChild(rowHeader);
+
+                // Correlation cells
+                for (let j = 0; j < n; j++) {
+                    const corr = correlations[i][j];
+                    const cell = document.createElement('div');
+                    cell.className = 'correlation-cell';
+
+                    // Color based on correlation value
+                    // Blue for positive, red for negative, white for zero
+                    let bgColor;
+                    if (corr > 0) {
+                        const intensity = Math.min(255, Math.floor(corr * 200));
+                        bgColor = `rgb(${Math.floor((1 - corr) * 30)}, ${Math.floor((1 - corr) * 100 + 100)}, ${intensity})`;
+                    } else if (corr < 0) {
+                        const intensity = Math.min(255, Math.floor(-corr * 200));
+                        bgColor = `rgb(${intensity}, ${Math.floor((1 + corr) * 100)}, ${Math.floor((1 + corr) * 100)})`;
+                    } else {
+                        bgColor = '#334155';
+                    }
+
+                    cell.style.background = bgColor;
+                    cell.style.color = Math.abs(corr) > 0.5 ? '#fff' : '#cbd5e1';
+
+                    const valueDiv = document.createElement('div');
+                    valueDiv.className = 'correlation-value';
+                    valueDiv.textContent = corr.toFixed(2);
+                    cell.appendChild(valueDiv);
+
+                    // Tooltip
+                    let tooltip = null;
+                    cell.addEventListener('mouseenter', (e) => {
+                        tooltip = document.createElement('div');
+                        tooltip.style.position = 'fixed';
+                        tooltip.style.left = `${e.clientX + 12}px`;
+                        tooltip.style.top = `${e.clientY - 12}px`;
+                        tooltip.style.background = 'rgba(0, 0, 0, 0.95)';
+                        tooltip.style.color = '#fff';
+                        tooltip.style.padding = '10px 14px';
+                        tooltip.style.borderRadius = '6px';
+                        tooltip.style.fontSize = '12px';
+                        tooltip.style.zIndex = '10000';
+                        tooltip.style.pointerEvents = 'none';
+                        tooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                        tooltip.innerHTML = `
+                            <div style="font-weight: bold; margin-bottom: 4px;">${metrics[i].label} vs ${metrics[j].label}</div>
+                            <div>Pearson r = ${corr.toFixed(3)}</div>
+                            <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
+                                ${Math.abs(corr) > 0.7 ? 'Strong' : Math.abs(corr) > 0.4 ? 'Moderate' : 'Weak'} 
+                                ${corr > 0 ? 'positive' : corr < 0 ? 'negative' : 'no'} correlation
+                            </div>
+                        `;
+                        document.body.appendChild(tooltip);
+                    });
+
+                    cell.addEventListener('mousemove', (e) => {
+                        if (tooltip) {
+                            tooltip.style.left = `${e.clientX + 12}px`;
+                            tooltip.style.top = `${e.clientY - 12}px`;
+                        }
+                    });
+
+                    cell.addEventListener('mouseleave', () => {
+                        if (tooltip) {
+                            document.body.removeChild(tooltip);
+                            tooltip = null;
+                        }
+                    });
+
+                    grid.appendChild(cell);
+                }
+            }
+
+            container.appendChild(grid);
+        }
+
+        function renderBucketMap(container, bucket, allData) {
+            // Calculate bounds for all tiles
+            const lats = allData.map(t => t.lat);
+            const lons = allData.map(t => t.lon);
+            const centerLat = (Math.max(...lats) + Math.min(...lats)) / 2;
+            const centerLon = (Math.max(...lons) + Math.min(...lons)) / 2;
+
+            // Create map
+            const bucketMap = L.map(container, {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([centerLat, centerLon], 15);
+
+            // Add base map with lower opacity
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                opacity: 0.3
+            }).addTo(bucketMap);
+
+            // Calculate tile size from grid
+            const cols = Math.max(...allData.map(d => d.xtile)) - Math.min(...allData.map(d => d.xtile)) + 1;
+            const rows = Math.max(...allData.map(d => d.ytile)) - Math.min(...allData.map(d => d.ytile)) + 1;
+            const maxLat = Math.max(...lats);
+            const minLat = Math.min(...lats);
+            const maxLon = Math.max(...lons);
+            const minLon = Math.min(...lons);
+            const lonSpan = (maxLon - minLon) / cols;
+            const latSpan = (maxLat - minLat) / rows;
+
+            const tileIds = new Set(bucket.tiles.map(t => t.tile_id));
+
+            // Draw all tiles with appropriate styling
+            allData.forEach(tile => {
+                const tileLat = tile.lat;
+                const tileLon = tile.lon;
+                const bounds = [
+                    [tileLat - latSpan / 2, tileLon - lonSpan / 2],
+                    [tileLat + latSpan / 2, tileLon + lonSpan / 2]
+                ];
+
+                const isInBucket = tileIds.has(tile.tile_id);
+                const f1 = tile.f1_score || 0;
+
+                const rectangle = L.rectangle(bounds, {
+                    color: isInBucket ? bucket.color : '#334155',
+                    weight: isInBucket ? 2 : 1,
+                    fillColor: isInBucket ? bucket.color : '#1e293b',
+                    fillOpacity: isInBucket ? (0.3 + f1 * 0.5) : 0.1
+                }).addTo(bucketMap);
+
+                if (isInBucket) {
+                    rectangle.bindPopup(`
+                        <div style="font-size: 12px;">
+                            <strong style="color: ${bucket.color};">Tile ${tile.tile_id}</strong><br>
+                            F1: ${(f1 * 100).toFixed(1)}%<br>
+                            Precision: ${((tile.precision || 0) * 100).toFixed(1)}%<br>
+                            Recall: ${((tile.recall || 0) * 100).toFixed(1)}%
+                        </div>
+                    `);
+                }
+            });
+
+            // Fit bounds
+            const bucketBounds = bucket.tiles.map(t => {
+                return [
+                    [t.lat - latSpan / 2, t.lon - lonSpan / 2],
+                    [t.lat + latSpan / 2, t.lon + lonSpan / 2]
+                ];
+            }).flat();
+            
+            if (bucketBounds.length > 0) {
+                bucketMap.fitBounds(bucketBounds, { padding: [20, 20] });
+            }
+        }
+
+        function renderBuckets(filteredData = data) {
+            const container = document.getElementById('buckets-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            // Define buckets
+            const buckets = [
+                { name: 'Excellent', min: 0.90, max: 1.01, color: '#10b981', tiles: [] },
+                { name: 'Good', min: 0.70, max: 0.90, color: '#3b82f6', tiles: [] },
+                { name: 'Fair', min: 0.50, max: 0.70, color: '#f59e0b', tiles: [] },
+                { name: 'Poor', min: 0.0, max: 0.50, color: '#ef4444', tiles: [] }
+            ];
+
+            // Assign filtered tiles to buckets
+            filteredData.forEach(tile => {
+                const f1 = tile.f1_score || 0;
+                for (const bucket of buckets) {
+                    if (f1 >= bucket.min && f1 < bucket.max) {
+                        bucket.tiles.push(tile);
+                        break;
+                    }
+                }
+            });
+
+            // Create grid container
+            const bucketsGrid = document.createElement('div');
+            bucketsGrid.className = 'buckets-grid';
+
+            buckets.forEach(bucket => {
+                // Calculate bucket stats
+                const avgF1 = bucket.tiles.length > 0
+                    ? bucket.tiles.reduce((sum, t) => sum + (t.f1_score || 0), 0) / bucket.tiles.length
+                    : 0;
+                const avgPrecision = bucket.tiles.length > 0
+                    ? bucket.tiles.reduce((sum, t) => sum + (t.precision || 0), 0) / bucket.tiles.length
+                    : 0;
+                const avgRecall = bucket.tiles.length > 0
+                    ? bucket.tiles.reduce((sum, t) => sum + (t.recall || 0), 0) / bucket.tiles.length
+                    : 0;
+
+                // Create bucket card
+                const card = document.createElement('div');
+                card.className = 'bucket-card';
+                card.style.borderColor = bucket.color + '40';
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'bucket-header';
+
+                const title = document.createElement('div');
+                title.className = 'bucket-title';
+                title.style.color = bucket.color;
+                title.textContent = bucket.name;
+
+                const count = document.createElement('div');
+                count.className = 'bucket-count';
+                count.textContent = `${bucket.tiles.length} tiles (${((bucket.tiles.length / 96) * 100).toFixed(1)}%)`;
+
+                header.appendChild(title);
+                header.appendChild(count);
+                card.appendChild(header);
+
+                // Range description
+                if (bucket.tiles.length > 0) {
+                    const rangeDesc = document.createElement('div');
+                    rangeDesc.style.fontSize = '11px';
+                    rangeDesc.style.color = '#94a3b8';
+                    rangeDesc.style.marginBottom = '10px';
+                    rangeDesc.style.textAlign = 'center';
+                    const minPct = Math.floor(bucket.min * 100);
+                    const maxPct = bucket.max > 1 ? 100 : Math.floor(bucket.max * 100);
+                    rangeDesc.textContent = `F1 Score: ${minPct}% - ${maxPct}%`;
+                    card.appendChild(rangeDesc);
+
+                    // Toggle buttons
+                    const toggleContainer = document.createElement('div');
+                    toggleContainer.className = 'bucket-toggle';
+                    
+                    const gridBtn = document.createElement('button');
+                    gridBtn.className = 'bucket-toggle-btn active';
+                    gridBtn.textContent = '📈 Grid';
+                    gridBtn.dataset.bucketName = bucket.name;
+                    
+                    const mapBtn = document.createElement('button');
+                    mapBtn.className = 'bucket-toggle-btn';
+                    mapBtn.textContent = '🗺️ Map';
+                    mapBtn.dataset.bucketName = bucket.name;
+                    
+                    toggleContainer.appendChild(gridBtn);
+                    toggleContainer.appendChild(mapBtn);
+                    card.appendChild(toggleContainer);
+                }
+
+                // Mini heatmap grid (12×8)
+                const grid = document.createElement('div');
+                grid.className = 'bucket-grid';
+
+                // Create set of tile IDs in this bucket for quick lookup
+                const tileIds = new Set(bucket.tiles.map(t => t.tile_id));
+
+                // Create 96 cells (12 cols × 8 rows) using actual xtile/ytile coordinates
+                for (let row = 0; row < gridLayout.rows; row++) {
+                    for (let col = 0; col < gridLayout.cols; col++) {
+                        const tile = data.find(
+                            t => t.xtile === gridLayout.minX + col && t.ytile === gridLayout.minY + row
+                        );
+                        const cell = document.createElement('div');
+                        cell.className = 'bucket-cell';
+
+                        if (tile && tileIds.has(tile.tile_id)) {
+                            // Tile is in this bucket
+                            const f1 = tile.f1_score || 0;
+                            const intensity = f1; // 0-1 range
+                            cell.style.background = bucket.color;
+                            cell.style.opacity = 0.3 + (intensity * 0.7);
+
+                            // Tooltip
+                            let tooltip = null;
+                            cell.addEventListener('mouseenter', (e) => {
+                                tooltip = document.createElement('div');
+                                tooltip.style.position = 'fixed';
+                                tooltip.style.left = `${e.clientX + 12}px`;
+                                tooltip.style.top = `${e.clientY - 12}px`;
+                                tooltip.style.background = 'rgba(0, 0, 0, 0.95)';
+                                tooltip.style.color = '#fff';
+                                tooltip.style.padding = '10px 14px';
+                                tooltip.style.borderRadius = '6px';
+                                tooltip.style.fontSize = '12px';
+                                tooltip.style.zIndex = '10000';
+                                tooltip.style.pointerEvents = 'none';
+                                tooltip.style.boxShadow = '0 4px 12px rgba(0,0,0,0.5)';
+                                tooltip.style.border = `2px solid ${bucket.color}`;
+                                tooltip.innerHTML = `
+                                    <div style="font-weight: bold; margin-bottom: 4px; color: ${bucket.color};">Tile ${tile.tile_id}</div>
+                                    <div>F1: ${(f1 * 100).toFixed(1)}%</div>
+                                    <div>Precision: ${((tile.precision || 0) * 100).toFixed(1)}%</div>
+                                    <div>Recall: ${((tile.recall || 0) * 100).toFixed(1)}%</div>
+                                `;
+                                document.body.appendChild(tooltip);
+                            });
+
+                            cell.addEventListener('mousemove', (e) => {
+                                if (tooltip) {
+                                    tooltip.style.left = `${e.clientX + 12}px`;
+                                    tooltip.style.top = `${e.clientY - 12}px`;
+                                }
+                            });
+
+                            cell.addEventListener('mouseleave', () => {
+                                if (tooltip) {
+                                    document.body.removeChild(tooltip);
+                                    tooltip = null;
+                                }
+                            });
+                        } else {
+                            // Empty cell (tile not in this bucket)
+                            cell.classList.add('empty');
+                        }
+
+                        grid.appendChild(cell);
+                    }
+                }
+
+                card.appendChild(grid);
+
+                // Create map container (initially hidden)
+                const mapContainer = document.createElement('div');
+                mapContainer.className = 'bucket-map-container';
+                mapContainer.style.display = 'none';
+                mapContainer.id = `bucket-map-${bucket.name.toLowerCase()}`;
+                card.appendChild(mapContainer);
+
+                // Add toggle event listeners
+                if (bucket.tiles.length > 0) {
+                    const gridBtn = card.querySelector('.bucket-toggle-btn:first-child');
+                    const mapBtn = card.querySelector('.bucket-toggle-btn:last-child');
+                    
+                    gridBtn.addEventListener('click', () => {
+                        grid.style.display = 'grid';
+                        mapContainer.style.display = 'none';
+                        gridBtn.classList.add('active');
+                        mapBtn.classList.remove('active');
+                    });
+                    
+                    mapBtn.addEventListener('click', () => {
+                        grid.style.display = 'none';
+                        mapContainer.style.display = 'block';
+                        gridBtn.classList.remove('active');
+                        mapBtn.classList.add('active');
+                        
+                        // Initialize map if not already done
+                        if (!mapContainer.dataset.initialized) {
+                            renderBucketMap(mapContainer, bucket, data);
+                            mapContainer.dataset.initialized = 'true';
+                        }
+                    });
+                }
+
+                // Stats
+                if (bucket.tiles.length > 0) {
+                    const stats = document.createElement('div');
+                    stats.className = 'bucket-stats';
+
+                    const f1Stat = document.createElement('div');
+                    f1Stat.className = 'bucket-stat';
+                    f1Stat.innerHTML = `
+                        <span class="bucket-stat-value">${(avgF1 * 100).toFixed(1)}%</span>
+                        Avg F1
+                    `;
+
+                    const precisionStat = document.createElement('div');
+                    precisionStat.className = 'bucket-stat';
+                    precisionStat.innerHTML = `
+                        <span class="bucket-stat-value">${(avgPrecision * 100).toFixed(1)}%</span>
+                        Avg Precision
+                    `;
+
+                    const recallStat = document.createElement('div');
+                    recallStat.className = 'bucket-stat';
+                    recallStat.innerHTML = `
+                        <span class="bucket-stat-value">${(avgRecall * 100).toFixed(1)}%</span>
+                        Avg Recall
+                    `;
+
+                    stats.appendChild(f1Stat);
+                    stats.appendChild(precisionStat);
+                    stats.appendChild(recallStat);
+                    card.appendChild(stats);
+                }
+
+                bucketsGrid.appendChild(card);
+            });
+
+            container.appendChild(bucketsGrid);
+        }
+
+        function renderTable(filteredData = data) {
+            const sortKey = document.getElementById('sort-select').value;
+
+            const sorted = [...filteredData]
                 .sort((a, b) => (b[sortKey] || 0) - (a[sortKey] || 0));
 
             const tbody = document.getElementById('table-body');
@@ -727,41 +2848,92 @@
             });
         }
 
+        function getFilteredData() {
+            const filterThreshold = parseFloat(document.getElementById('filter-threshold').value);
+            const threshold = filterThreshold / 100; // Convert 0-100 to 0-1
+            return data.filter(tile => (tile.f1_score || 0) >= threshold);
+        }
+
+        let spatialMode = 'map'; // Track current spatial view mode
+
         function render() {
             const viewMode = document.getElementById('view-mode').value;
+            const filterThreshold = parseFloat(document.getElementById('filter-threshold').value);
             
-            document.getElementById('heatmap-section').style.display = viewMode === 'heatmap' ? 'block' : 'none';
+            // Get filtered data
+            const filteredData = getFilteredData();
+            const filteredCount = filteredData.length;
+            const totalCount = data.length;
+            
+            // Update threshold display with count
+            document.getElementById('threshold-display').textContent = 
+                `≥ ${filterThreshold}% (${filteredCount}/${totalCount} tiles)`;
+            
+            document.getElementById('spatial-section').style.display = viewMode === 'spatial' ? 'block' : 'none';
             document.getElementById('scatter-section').style.display = viewMode === 'scatter' ? 'block' : 'none';
+            document.getElementById('statistical-section').style.display = viewMode === 'statistical' ? 'block' : 'none';
+            document.getElementById('erroranalysis-section').style.display = viewMode === 'erroranalysis' ? 'block' : 'none';
             document.getElementById('table-section').style.display = viewMode === 'table' ? 'block' : 'none';
 
-            renderStats();
+            // Always render global confusion matrix (visible in all views) - use filtered data
+            renderGlobalConfusionMatrix(filteredData);
+            
+            renderStats(filteredData);
 
-            if (viewMode === 'heatmap') {
-                renderHeatmap();
+            if (viewMode === 'spatial') {
+                if (spatialMode === 'heatmap') {
+                    renderHeatmap(filteredData);
+                } else {
+                    setTimeout(() => renderMap(filteredData), 100);
+                }
             } else if (viewMode === 'scatter') {
-                renderScatter();
+                renderScatter(filteredData);
+            } else if (viewMode === 'statistical') {
+                renderDistributions(filteredData);
+                renderCorrelation(filteredData);
+            } else if (viewMode === 'erroranalysis') {
+                renderBuckets(filteredData);
+                renderComposition(filteredData);
             } else if (viewMode === 'table') {
-                renderTable();
+                renderTable(filteredData);
             }
         }
 
         // Event listeners
         document.getElementById('view-mode').addEventListener('change', render);
+        
         document.getElementById('metric-select').addEventListener('change', render);
+        
         document.getElementById('sort-select').addEventListener('change', () => {
             const viewMode = document.getElementById('view-mode').value;
-            if (viewMode === 'scatter' || viewMode === 'table') render();
+            if (viewMode === 'table') render();
         });
 
         document.getElementById('filter-threshold').addEventListener('input', (e) => {
-            const metricKey = document.getElementById('metric-select').value;
-            const isLength = metricKey.includes('length');
-            const value = parseFloat(e.target.value);
-            const display = isLength ? `≥ ${value}m` : `≥ ${value.toFixed(0)}%`;
-            document.getElementById('threshold-display').textContent = display;
+            render(); // Re-render everything with new threshold
+        });
 
-            const viewMode = document.getElementById('view-mode').value;
-            if (viewMode === 'heatmap' || viewMode === 'table') render();
+        // Toggle buttons for spatial view
+        document.getElementById('toggle-heatmap').addEventListener('click', () => {
+            spatialMode = 'heatmap';
+            document.getElementById('heatmap-view').style.display = 'block';
+            document.getElementById('map-view').style.display = 'none';
+            document.getElementById('toggle-heatmap').style.background = '#3b82f6';
+            document.getElementById('toggle-heatmap').style.color = 'white';
+            document.getElementById('toggle-map').style.background = 'transparent';
+            document.getElementById('toggle-map').style.color = '#94a3b8';
+            render();
+        });
+
+        document.getElementById('toggle-map').addEventListener('click', () => {
+            spatialMode = 'map';
+            document.getElementById('heatmap-view').style.display = 'none';
+            document.getElementById('map-view').style.display = 'block';
+            document.getElementById('toggle-map').style.background = '#3b82f6';
+            document.getElementById('toggle-map').style.color = 'white';
+            document.getElementById('toggle-heatmap').style.background = 'transparent';
+            document.getElementById('toggle-heatmap').style.color = '#94a3b8';
+            render();
         });
 
         // Initialize

@@ -4,25 +4,25 @@ const config = {
     center: [42.3539772, -71.0678100],
     zoom: 19,
     tileZoom: 19,
-    tilesPath: 'tiles/static/ma/256_19/',
-    networkPath: 'network/example-Network-24-10-2025_23_19/example-Network-24-10-2025_23_19',
-    polygonsPath: 'polygons/example-Polygons-24-10-2025_23_18/example-Polygons-24-10-2025_23_18',
-    tileInfo: 'tiles/example_256_info.csv'
+    tilesPath: 'tiles-new/static/ma/256_19/',
+    networkPath: 'network-new/example-Network-30-11-2025_04_17/example-Network-30-11-2025_04_17',
+    polygonsPath: 'polygons-new/example-Polygons-30-11-2025_04_16/example-Polygons-30-11-2025_04_16',
+    tileInfo: 'tiles-new/example_256_info.csv'
 };
 
 // Initialize the map
 const map = L.map('map', {
     center: config.center,
-    zoom: 17,
+    zoom: 16,  // Start more zoomed out for better context
     maxZoom: 20,
-    minZoom: 15
+    minZoom: 14  // Allow zooming out further
 });
 
-// Add a simple basemap (OSM) for context - optional, can be removed if not wanted
-// const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-//     opacity: 0.3
-// }).addTo(map);
+// Add a simple basemap (OSM) for context - shows surrounding area
+const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    opacity: 0.5  // Semi-transparent to see both basemap and aerial tiles
+}).addTo(map);
 
 // Layer groups for organization
 const layers = {
