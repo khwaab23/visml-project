@@ -971,6 +971,127 @@
             color: #fca5a5;
             margin: 16px 0;
         }
+
+        /* ============================================== */
+        /* TILE DETAIL MODAL STYLES (Feature #8)        */
+        /* ============================================== */
+
+        .modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-backdrop.visible {
+            display: block;
+        }
+
+        .tile-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
+            background: #1e293b;
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 9999;
+            overflow-y: auto;
+        }
+
+        .tile-modal.visible {
+            display: block;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #f1f5f9;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 32px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-section {
+            margin-bottom: 24px;
+            padding: 16px;
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .modal-section h3 {
+            margin: 0 0 12px 0;
+            font-size: 16px;
+            color: #cbd5e1;
+            font-weight: 600;
+        }
+
+        .modal-section h4 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        #tile-mini-map {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -1206,6 +1327,59 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+
+        <!-- Feature Hint Banner -->
+        <div style="background: linear-gradient(135deg, #1e40af 0%, #7c3aed 100%); padding: 16px 24px; border-radius: 8px; margin-top: 30px; border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <div style="font-size: 24px;">⌨️</div>
+                <strong style="color: #e0e7ff; font-size: 15px;">Keyboard Shortcuts</strong>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; color: #c7d2fe; font-size: 13px;">
+                <div>
+                    <kbd style="background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Ctrl</kbd> + 
+                    <kbd style="background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Click</kbd>
+                    <span style="margin-left: 8px;">Open tile detail modal</span>
+                </div>
+                <div>
+                    <kbd style="background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Arrow Keys</kbd>
+                    <span style="margin-left: 8px;">Navigate between tiles</span>
+                </div>
+                <div>
+                    <kbd style="background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Enter</kbd> / 
+                    <kbd style="background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Space</kbd>
+                    <span style="margin-left: 8px;">Open modal for selected tile</span>
+                </div>
+                <div>
+                    <kbd style="background: rgba(255,255,255,0.2); padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">Esc</kbd>
+                    <span style="margin-left: 8px;">Close modal</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tile Detail Modal (Feature #8) -->
+    <div id="tile-detail-backdrop" class="modal-backdrop"></div>
+    <div id="tile-detail-modal" class="tile-modal">
+        <div class="modal-header">
+            <h2 id="modal-title">Tile Details</h2>
+            <button id="modal-close-btn" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- Section 1: Metric Cards -->
+            <div id="modal-metrics" class="modal-section"></div>
+            
+            <!-- Section 2: Confusion Matrix Details -->
+            <div id="modal-confusion" class="modal-section"></div>
+            
+            <!-- Section 3: Raw Data Table -->
+            <div id="modal-raw-data" class="modal-section"></div>
+            
+            <!-- Section 4: Mini Leaflet Map (Feature #10) -->
+            <div class="modal-section">
+                <h3>Geographic Location</h3>
+                <div id="tile-mini-map" style="height: 300px; border-radius: 8px;"></div>
             </div>
         </div>
     </div>
@@ -1979,10 +2153,19 @@
                 circle.style.cursor = 'pointer';
                 circle.style.transition = 'all 0.2s';
                 
-                // Click to select
+                // Add tooltip hint
+                const titleElem = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                titleElem.textContent = `Tile ${tile.tile_id}: Click to select, Ctrl+Click for details`;
+                circle.appendChild(titleElem);
+                
+                // Click to select, Ctrl+Click to open modal
                 circle.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    toggleTileSelection(tile.tile_id, e);
+                    if (e.ctrlKey || e.metaKey) {
+                        openTileDetailModal(tile);
+                    } else {
+                        toggleTileSelection(tile.tile_id, e);
+                    }
                 });
 
                 // Tooltip on hover
@@ -2124,10 +2307,15 @@
                         cell.style.cursor = 'pointer';
                         cell.style.border = isSelected ? '3px solid #facc15' : '1px solid rgba(255,255,255,0.1)';
                         cell.style.boxShadow = isSelected ? '0 0 10px rgba(250, 204, 21, 0.6)' : 'none';
+                        cell.title = `Tile ${tile.tile_id}: Click to select, Ctrl+Click for details`;
 
-                        // Click to select
+                        // Click to select, Ctrl+Click to open modal
                         cell.addEventListener('click', (e) => {
-                            toggleTileSelection(tile.tile_id, e);
+                            if (e.ctrlKey || e.metaKey) {
+                                openTileDetailModal(tile);
+                            } else {
+                                toggleTileSelection(tile.tile_id, e);
+                            }
                         });
 
                         // Hover effect
@@ -2608,6 +2796,11 @@
                 path.dataset.ytile = tile.ytile;
                 path.style.cursor = 'pointer';
                 
+                // Add tooltip hint
+                const titleElem = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                titleElem.textContent = `Tile ${tile.tile_id}: Click to select, Ctrl+Click for details`;
+                path.appendChild(titleElem);
+                
                 // Highlight if selected
                 const isSelected = selectedTiles.has(tile.tile_id);
                 if (isSelected) {
@@ -2616,10 +2809,14 @@
                     path.setAttribute('stroke-width', '3');
                 }
 
-                // Click to select
+                // Click to select, Ctrl+Click to open modal
                 path.addEventListener('click', (e) => {
                     e.stopPropagation();
-                    toggleTileSelection(tile.tile_id, e);
+                    if (e.ctrlKey || e.metaKey) {
+                        openTileDetailModal(tile);
+                    } else {
+                        toggleTileSelection(tile.tile_id, e);
+                    }
                 });
 
                 // Hover events
@@ -3610,6 +3807,7 @@
                 const isSelected = selectedTiles.has(tile.tile_id);
                 
                 row.style.cursor = 'pointer';
+                row.title = `Click to select, Ctrl+Click for details`;
                 if (isSelected) {
                     row.style.background = 'rgba(250, 204, 21, 0.2)';
                     row.style.borderLeft = '4px solid #facc15';
@@ -3629,8 +3827,13 @@
                     <td><span class="metric-fn">${formatValue(tile.fn_length_m, false)}</span></td>
                 `;
                 
+                // Click to select, Ctrl+Click to open modal
                 row.addEventListener('click', (e) => {
-                    toggleTileSelection(tile.tile_id, e);
+                    if (e.ctrlKey || e.metaKey) {
+                        openTileDetailModal(tile);
+                    } else {
+                        toggleTileSelection(tile.tile_id, e);
+                    }
                 });
                 
                 tbody.appendChild(row);
@@ -3709,6 +3912,349 @@
             }
         }
 
+        // ==============================================
+        // FEATURE #8: TILE DETAIL MODAL
+        // ==============================================
+
+        let detailMapInstance = null; // Global map instance for modal
+        let isModalOpen = false; // Prevent multiple simultaneous modals
+
+        /**
+         * Opens the tile detail modal and populates it with tile data
+         * @param {Object} tile - Tile object from data array
+         */
+        function openTileDetailModal(tile) {
+            if (isModalOpen) return; // Prevent multiple opens
+            isModalOpen = true;
+            
+            // 1. Populate modal title with action button
+            document.getElementById('modal-title').innerHTML = `
+                Tile #${tile.tile_id} (${tile.xtile}, ${tile.ytile})
+                <button onclick="viewTileOnMap(${tile.tile_id})" style="
+                    margin-left: 16px;
+                    padding: 4px 12px;
+                    background: #3b82f6;
+                    color: white;
+                    border: none;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    cursor: pointer;
+                    transition: background 0.2s;
+                " onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                    🗺️ View on Map
+                </button>
+            `;
+            
+            // 2. Populate Section 1: Metric Cards
+            populateMetricCards(tile);
+            
+            // 3. Populate Section 2: Confusion Matrix Details
+            populateConfusionDetails(tile);
+            
+            // 4. Populate Section 3: Raw Data Table
+            populateRawDataTable(tile);
+            
+            // 5. Show modal
+            document.getElementById('tile-detail-backdrop').classList.add('visible');
+            document.getElementById('tile-detail-modal').classList.add('visible');
+            
+            // 6. Initialize/update mini map (Feature #10)
+            setTimeout(() => {
+                initTileMiniMapIfNeeded();
+                updateTileMiniMap(tile);
+            }, 100); // Small delay to ensure modal is visible
+        }
+
+        /**
+         * Closes the tile detail modal
+         */
+        function closeTileDetailModal() {
+            document.getElementById('tile-detail-backdrop').classList.remove('visible');
+            document.getElementById('tile-detail-modal').classList.remove('visible');
+            isModalOpen = false;
+        }
+
+        /**
+         * Switches to spatial map view and highlights the selected tile
+         * @param {number} tileId - The tile ID to view
+         */
+        function viewTileOnMap(tileId) {
+            // Close modal
+            closeTileDetailModal();
+            
+            // Switch to spatial view
+            document.getElementById('view-mode').value = 'spatial';
+            
+            // Ensure map view is active (not heatmap grid)
+            spatialMode = 'map';
+            document.getElementById('heatmap-view').style.display = 'none';
+            document.getElementById('map-view').style.display = 'block';
+            document.getElementById('toggle-map').style.background = '#3b82f6';
+            document.getElementById('toggle-map').style.color = 'white';
+            document.getElementById('toggle-heatmap').style.background = 'transparent';
+            document.getElementById('toggle-heatmap').style.color = '#94a3b8';
+            
+            // Select the tile
+            selectedTiles.clear();
+            selectedTiles.add(tileId);
+            
+            // Re-render to show the tile
+            render();
+            
+            // Zoom to tile on map if it exists
+            setTimeout(() => {
+                const tile = data.find(t => t.tile_id === tileId);
+                if (tile && map) {
+                    map.setView([tile.lat, tile.lon], 18);
+                }
+            }, 300);
+        }
+
+        /**
+         * Populates the metric summary cards
+         */
+        function populateMetricCards(tile) {
+            const container = document.getElementById('modal-metrics');
+            container.innerHTML = `
+                <h3>Performance Metrics</h3>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+                ${createMetricCard('F1 Score', tile.f1_score, true)}
+                ${createMetricCard('Precision', tile.precision, true)}
+                ${createMetricCard('Recall', tile.recall, true)}
+                ${createMetricCard('IoU', tile.iou, true)}
+                </div>
+            `;
+        }
+
+        /**
+         * Helper to create a metric card HTML
+         */
+        function createMetricCard(label, value, isPercentage) {
+            const displayValue = isPercentage 
+                ? `${(value * 100).toFixed(1)}%` 
+                : `${value.toFixed(2)}m`;
+            
+            // Color coding based on value
+            let color = '#94a3b8';
+            if (isPercentage) {
+                if (value >= 0.9) color = '#10b981'; // Green
+                else if (value >= 0.7) color = '#3b82f6'; // Blue
+                else if (value >= 0.5) color = '#f59e0b'; // Orange
+                else color = '#ef4444'; // Red
+            }
+            
+            return `
+                <div style="background: rgba(15,23,42,0.5); padding: 16px; border-radius: 6px; border: 2px solid ${color}20;">
+                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">${label}</div>
+                <div style="font-size: 24px; font-weight: bold; color: ${color};">${displayValue}</div>
+                </div>
+            `;
+        }
+
+        /**
+         * Populates confusion matrix details
+         */
+        function populateConfusionDetails(tile) {
+            const container = document.getElementById('modal-confusion');
+            container.innerHTML = `
+                <h3>Confusion Matrix Breakdown</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4 style="color: #10b981; margin-bottom: 12px;">📏 Lengths (meters)</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(16,185,129,0.1); border-radius: 4px;">
+                        <span style="color: #94a3b8;">True Positive:</span>
+                        <strong style="color: #10b981;">${tile.tp_length_m.toFixed(2)}m</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(239,68,68,0.1); border-radius: 4px;">
+                        <span style="color: #94a3b8;">False Positive:</span>
+                        <strong style="color: #ef4444;">${tile.fp_length_m.toFixed(2)}m</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(245,158,11,0.1); border-radius: 4px;">
+                        <span style="color: #94a3b8;">False Negative:</span>
+                        <strong style="color: #f59e0b;">${tile.fn_length_m.toFixed(2)}m</strong>
+                    </div>
+                    </div>
+                </div>
+                <div>
+                    <h4 style="color: #3b82f6; margin-bottom: 12px;">🔢 Counts (segments)</h4>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(16,185,129,0.1); border-radius: 4px;">
+                        <span style="color: #94a3b8;">TP Segments:</span>
+                        <strong style="color: #10b981;">${tile.tp_count}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(239,68,68,0.1); border-radius: 4px;">
+                        <span style="color: #94a3b8;">FP Segments:</span>
+                        <strong style="color: #ef4444;">${tile.fp_count}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px; background: rgba(245,158,11,0.1); border-radius: 4px;">
+                        <span style="color: #94a3b8;">FN Segments:</span>
+                        <strong style="color: #f59e0b;">${tile.fn_count}</strong>
+                    </div>
+                    </div>
+                </div>
+                </div>
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                    <span style="color: #94a3b8; font-size: 13px;">ML Total:</span>
+                    <strong style="margin-left: 8px; color: #60a5fa;">${tile.ml_total_length_m.toFixed(2)}m (${tile.ml_count} segs)</strong>
+                    </div>
+                    <div>
+                    <span style="color: #94a3b8; font-size: 13px;">OSM Total:</span>
+                    <strong style="margin-left: 8px; color: #a78bfa;">${tile.osm_total_length_m.toFixed(2)}m (${tile.osm_count} segs)</strong>
+                    </div>
+                </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Populates raw data table with all fields
+         */
+        function populateRawDataTable(tile) {
+            const container = document.getElementById('modal-raw-data');
+            const fields = [
+                ['Tile ID', tile.tile_id],
+                ['Grid Position', `(${tile.xtile}, ${tile.ytile})`],
+                ['Coordinates', `${tile.lat.toFixed(6)}°N, ${tile.lon.toFixed(6)}°W`],
+                ['ML Total Length', `${tile.ml_total_length_m.toFixed(2)}m`],
+                ['OSM Total Length', `${tile.osm_total_length_m.toFixed(2)}m`],
+                ['ML Segment Count', tile.ml_count],
+                ['OSM Segment Count', tile.osm_count],
+                ['Buffer Distance', `${tile.buffer_distance_m}m`],
+                ['Alignment Threshold', `${tile.alignment_angle_threshold_deg}°`]
+            ];
+            
+            container.innerHTML = `
+                <h3>Complete Tile Information</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                ${fields.map(([key, val]) => `
+                    <tr style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+                    <td style="padding: 10px 12px; color: #94a3b8; font-size: 13px;">${key}</td>
+                    <td style="padding: 10px 12px; font-weight: 500; color: #e2e8f0; text-align: right;">${val}</td>
+                    </tr>
+                `).join('')}
+                </table>
+            `;
+        }
+
+        // ==============================================
+        // FEATURE #10: MINI LEAFLET MAP IN MODAL
+        // ==============================================
+
+        /**
+         * Initializes the Leaflet map inside the modal (only once)
+         */
+        function initTileMiniMapIfNeeded() {
+            if (detailMapInstance) return; // Already initialized
+            
+            const container = document.getElementById('tile-mini-map');
+            if (!container) {
+                console.error('tile-mini-map container not found');
+                return;
+            }
+            
+            // Show loading indicator
+            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #94a3b8;"><div style="text-align: center;"><div style="font-size: 32px; margin-bottom: 8px;">🗺️</div><div>Loading map...</div></div></div>';
+            
+            try {
+                // Create Leaflet map
+                detailMapInstance = L.map('tile-mini-map').setView([42.355, -71.071], 17);
+                
+                // Add OSM tile layer
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(detailMapInstance);
+                
+                console.log('Mini map initialized successfully');
+            } catch (error) {
+                console.error('Failed to initialize mini map:', error);
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #ef4444;"><div style="text-align: center;"><div style="font-size: 32px; margin-bottom: 8px;">⚠️</div><div>Map failed to load</div></div></div>';
+            }
+        }
+
+        /**
+         * Updates the mini map to show the selected tile
+         * @param {Object} tile - Tile object with lat/lon
+         */
+        function updateTileMiniMap(tile) {
+            if (!detailMapInstance) {
+                console.warn('Map not initialized, initializing now...');
+                initTileMiniMapIfNeeded();
+                if (!detailMapInstance) return;
+            }
+            
+            // Clear existing layers (markers, rectangles) but keep base tiles
+            detailMapInstance.eachLayer(layer => {
+                if (layer instanceof L.Marker || layer instanceof L.Rectangle || layer instanceof L.Circle) {
+                    detailMapInstance.removeLayer(layer);
+                }
+            });
+            
+            // Center map on tile
+            detailMapInstance.setView([tile.lat, tile.lon], 18);
+            
+            // Add marker at tile center
+            const marker = L.marker([tile.lat, tile.lon], {
+                icon: L.icon({
+                    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34]
+                })
+            }).addTo(detailMapInstance);
+            
+            marker.bindPopup(`
+                <div style="font-family: sans-serif;">
+                <strong style="color: #3b82f6; font-size: 14px;">Tile ${tile.tile_id}</strong><br>
+                <div style="margin-top: 8px; font-size: 12px; line-height: 1.6;">
+                    <div style="margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #e2e8f0;">
+                        <strong>Performance:</strong> F1 ${(tile.f1_score * 100).toFixed(1)}%
+                    </div>
+                    <div style="display: grid; grid-template-columns: auto 1fr; gap: 4px 8px;">
+                        <strong>Position:</strong> <span>(${tile.xtile}, ${tile.ytile})</span>
+                        <strong>Coords:</strong> <span>${tile.lat.toFixed(5)}°, ${tile.lon.toFixed(5)}°</span>
+                        <strong>ML Total:</strong> <span>${tile.ml_total_length_m.toFixed(1)}m</span>
+                        <strong>OSM Total:</strong> <span>${tile.osm_total_length_m.toFixed(1)}m</span>
+                    </div>
+                </div>
+                </div>
+            `).openPopup();
+            
+            // Draw approximate tile bounds
+            const tileSize = (360 / Math.pow(2, 19)) * Math.cos(tile.lat * Math.PI / 180);
+            const bounds = [
+                [tile.lat - tileSize/2, tile.lon - tileSize/2],
+                [tile.lat + tileSize/2, tile.lon + tileSize/2]
+            ];
+            
+            // Get color based on F1 score
+            const f1 = tile.f1_score;
+            let color = '#ef4444'; // Red
+            if (f1 >= 0.9) color = '#10b981'; // Green
+            else if (f1 >= 0.7) color = '#3b82f6'; // Blue
+            else if (f1 >= 0.5) color = '#f59e0b'; // Orange
+            
+            L.rectangle(bounds, {
+                color: color,
+                weight: 3,
+                fillColor: color,
+                fillOpacity: 0.15,
+                dashArray: '5, 5'
+            }).addTo(detailMapInstance);
+            
+            // Force map to redraw
+            setTimeout(() => {
+                if (detailMapInstance) {
+                    detailMapInstance.invalidateSize();
+                }
+            }, 50);
+            
+            console.log(`Map updated for tile ${tile.tile_id} at (${tile.lat}, ${tile.lon})`);
+        }
+
         // Event listeners
         document.getElementById('view-mode').addEventListener('change', render);
         
@@ -3744,6 +4290,71 @@
             document.getElementById('toggle-heatmap').style.background = 'transparent';
             document.getElementById('toggle-heatmap').style.color = '#94a3b8';
             render();
+        });
+
+        // ==============================================
+        // MODAL CLOSE HANDLERS
+        // ==============================================
+
+        // Close modal on backdrop click
+        document.getElementById('tile-detail-backdrop').addEventListener('click', closeTileDetailModal);
+
+        // Close modal on X button click
+        document.getElementById('modal-close-btn').addEventListener('click', closeTileDetailModal);
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isModalOpen) {
+                closeTileDetailModal();
+            }
+        });
+
+        // Keyboard shortcuts for tile navigation
+        document.addEventListener('keydown', (e) => {
+            // Only respond if modal is closed and a tile is selected
+            if (isModalOpen || selectedTiles.size !== 1) return;
+            
+            const currentTileId = Array.from(selectedTiles)[0];
+            const currentTile = data.find(t => t.tile_id === currentTileId);
+            if (!currentTile) return;
+            
+            let nextTile = null;
+            
+            // Arrow key navigation based on grid position
+            if (e.key === 'ArrowUp') {
+                // Move north (decrease ytile)
+                nextTile = data.find(t => t.xtile === currentTile.xtile && t.ytile === currentTile.ytile - 1);
+                e.preventDefault();
+            } else if (e.key === 'ArrowDown') {
+                // Move south (increase ytile)
+                nextTile = data.find(t => t.xtile === currentTile.xtile && t.ytile === currentTile.ytile + 1);
+                e.preventDefault();
+            } else if (e.key === 'ArrowLeft') {
+                // Move west (decrease xtile)
+                nextTile = data.find(t => t.xtile === currentTile.xtile - 1 && t.ytile === currentTile.ytile);
+                e.preventDefault();
+            } else if (e.key === 'ArrowRight') {
+                // Move east (increase xtile)
+                nextTile = data.find(t => t.xtile === currentTile.xtile + 1 && t.ytile === currentTile.ytile);
+                e.preventDefault();
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                // Open modal for current tile
+                openTileDetailModal(currentTile);
+                e.preventDefault();
+                return;
+            }
+            
+            // If valid neighbor tile found, select it
+            if (nextTile) {
+                selectedTiles.clear();
+                selectedTiles.add(nextTile.tile_id);
+                render();
+                
+                // If in map view, center on new tile
+                if (document.getElementById('view-mode').value === 'spatial' && spatialMode === 'map' && map) {
+                    map.setView([nextTile.lat, nextTile.lon], map.getZoom());
+                }
+            }
         });
 
         // Initialize
