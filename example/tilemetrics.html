@@ -157,7 +157,8 @@
             background: var(--bg-primary);
             color: var(--text-primary);
             min-height: 100vh;
-            padding: var(--space-lg) var(--space-md);
+            padding: 0;
+            margin: 0;
             line-height: var(--leading-normal);
             position: relative;
             overflow-x: hidden;
@@ -215,40 +216,23 @@
         }
         
         /* =========================
-           CONTAINER & LAYOUT
+           CONTAINER & LAYOUT (Legacy - now using app-shell)
            ========================= */
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            animation: fadeInUp 0.6s ease-out;
-            position: relative;
-            z-index: 10;
+            /* Deprecated: Now using .app-shell layout */
         }
 
-        /* Header */
+        /* Header (Legacy - now in topbar) */
         .header {
-            margin-bottom: var(--space-2xl);
-            text-align: center;
+            /* Deprecated: Now using .app-topbar */
         }
 
         .header h1 {
-            font-size: var(--text-4xl);
-            font-weight: var(--font-semibold);
-            font-family: var(--font-primary);
-            margin-bottom: var(--space-md);
-            display: inline-flex;
-            align-items: center;
-            gap: var(--space-md);
-            background: var(--gradient-text-primary);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            /* Deprecated: Now using .topbar-title */
         }
 
         .header p {
-            color: var(--text-secondary);
-            font-size: var(--text-lg);
-            line-height: var(--leading-relaxed);
+            /* Deprecated: Now using .topbar-info */
         }
 
         .icon {
@@ -1575,6 +1559,437 @@
             width: 1600px;
             max-width: none;
         }
+
+        /* =========================
+           DASHBOARD LAYOUT (Analytics Grid)
+           ========================= */
+        
+        /* App Shell */
+        .app-shell {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            min-height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Sidebar */
+        .app-sidebar {
+            background: linear-gradient(to bottom, rgba(17, 24, 39, 0.95), rgba(15, 23, 42, 0.95));
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-primary);
+            padding: var(--space-xl);
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .sidebar-header {
+            padding-bottom: var(--space-lg);
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .sidebar-logo {
+            font-size: var(--text-xl);
+            font-weight: var(--font-bold);
+            font-family: var(--font-primary);
+            background: var(--gradient-text-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: var(--space-xs);
+        }
+
+        .sidebar-subtitle {
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            font-weight: var(--font-medium);
+        }
+
+        .sidebar-back-btn {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-sm) var(--space-md);
+            background: var(--gradient-bg-card);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: var(--radius-md);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            border: 1px solid var(--border-primary);
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-back-btn:hover {
+            border-color: var(--border-accent);
+            transform: translateX(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .sidebar-section-label {
+            font-size: var(--text-xs);
+            font-weight: var(--font-semibold);
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin: var(--space-lg) 0 var(--space-sm) 0;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-radius: var(--radius-md);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .sidebar-link:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text-primary);
+        }
+
+        .sidebar-link.is-active {
+            background: var(--gradient-button-primary);
+            color: var(--color-white);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        }
+
+        .sidebar-icon {
+            font-size: var(--text-lg);
+        }
+
+        /* Sidebar Filter Section */
+        .sidebar-filter-section {
+            padding: var(--space-md);
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-primary);
+        }
+
+        .sidebar-filter-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: var(--text-xs);
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .sidebar-filter-value {
+            font-weight: var(--font-semibold);
+            color: var(--color-indigo-400);
+        }
+
+        .sidebar-slider {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-full);
+            outline: none;
+            -webkit-appearance: none;
+            margin-bottom: var(--space-xs);
+        }
+
+        .sidebar-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--gradient-button-primary);
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: var(--gradient-button-primary);
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-filter-info {
+            font-size: var(--text-xs);
+            color: var(--text-tertiary);
+            text-align: center;
+        }
+
+        .sidebar-clear-btn {
+            background: rgba(239, 68, 68, 0.1) !important;
+            color: var(--color-red-400) !important;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .sidebar-clear-btn:hover {
+            background: rgba(239, 68, 68, 0.2) !important;
+            color: var(--color-red-300) !important;
+        }
+
+        /* Main Content Area */
+        .app-main {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Top Bar */
+        .app-topbar {
+            background: linear-gradient(to bottom, rgba(17, 24, 39, 0.9), rgba(15, 23, 42, 0.8));
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-primary);
+            padding: var(--space-lg) var(--space-2xl);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .topbar-title {
+            font-size: var(--text-2xl);
+            font-weight: var(--font-semibold);
+            font-family: var(--font-primary);
+            background: var(--gradient-text-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+        }
+
+        .topbar-info {
+            font-size: var(--text-sm);
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        /* Controls Toolbar */
+        .controls-toolbar {
+            margin: var(--space-lg) var(--space-2xl) 0;
+            padding: var(--space-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xl);
+            flex-wrap: wrap;
+        }
+
+        .controls-left, .controls-center, .controls-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .controls-left {
+            flex: 1;
+        }
+
+        .toolbar-label {
+            font-size: var(--text-sm);
+            font-weight: var(--font-semibold);
+            color: var(--text-secondary);
+            margin-right: var(--space-sm);
+        }
+
+        .view-toggle-group {
+            display: flex;
+            gap: var(--space-xs);
+            background: rgba(15, 23, 42, 0.6);
+            padding: var(--space-xs);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-primary);
+        }
+
+        .view-toggle {
+            padding: var(--space-sm) var(--space-lg);
+            background: transparent;
+            color: var(--text-secondary);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .view-toggle:hover {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text-primary);
+        }
+
+        .view-toggle.is-active {
+            background: var(--color-indigo-600);
+            color: var(--color-white);
+            box-shadow: 0 2px 4px rgba(99, 102, 241, 0.4);
+        }
+
+        .clear-btn {
+            padding: var(--space-sm) var(--space-lg);
+            background: rgba(30, 41, 59, 0.6);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-md);
+            font-size: var(--text-sm);
+            font-weight: var(--font-medium);
+            font-family: var(--font-body);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .clear-btn:hover {
+            background: rgba(30, 41, 59, 0.8);
+            color: var(--text-primary);
+            border-color: var(--border-accent);
+        }
+
+        /* Main Content */
+        .app-content {
+            flex: 1;
+            padding: var(--space-xl) var(--space-2xl);
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xl);
+        }
+
+        .grid-row {
+            display: grid;
+            gap: var(--space-xl);
+        }
+
+        .grid-row-overview {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            grid-template-rows: auto auto;
+            gap: var(--space-xl);
+            align-items: start;
+        }
+        
+        .overview-confusion {
+            grid-column: 1;
+            grid-row: 1;
+        }
+        
+        .overview-spatial {
+            grid-column: 2;
+            grid-row: 1;
+        }
+        
+        .overview-metrics {
+            grid-column: 1 / -1;
+            grid-row: 2;
+        }
+
+        .grid-row-main {
+            grid-template-columns: 1fr;
+        }
+
+        .grid-row-secondary {
+            grid-template-columns: 1fr;
+        }
+
+        .grid-row-table {
+            grid-template-columns: 1fr;
+        }
+
+        /* Card Styles */
+        .card {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-primary);
+            border-radius: var(--radius-xl);
+            padding: var(--space-2xl);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--border-accent);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6),
+                        0 0 20px rgba(99, 102, 241, 0.2);
+        }
+
+        .card-hero {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                        0 0 30px rgba(99, 102, 241, 0.3);
+        }
+
+        .card-title {
+            font-size: var(--text-xl);
+            font-weight: var(--font-semibold);
+            font-family: var(--font-primary);
+            background: var(--gradient-text-primary);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 var(--space-lg) 0;
+        }
+
+        .card-visualization {
+            min-height: 400px;
+        }
+
+        .card-full {
+            grid-column: 1 / -1;
+        }
+
+        /* Footer */
+        .app-footer-shortcuts {
+            padding: 0 var(--space-2xl) var(--space-2xl);
+            position: relative;
+            z-index: 1;
+        }
+
+        .app-footer-shortcuts > div {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .app-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .app-sidebar {
+                position: relative;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--border-primary);
+            }
+
+            .grid-row-overview {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1598,65 +2013,105 @@
         <img src="../../Portfolio-Final/public/images/footer-illustration.svg" alt="" />
     </div>
 
-    <div class="container">
-        <a href="index.html" class="back-btn">← Back to Map</a>
-
-        <div class="header">
-            <h1>📊 Tile-Level Performance Analysis</h1>
-            <p id="header-info">Loading tile metrics...</p>
-        </div>
-
-        <div id="error-container"></div>
-
-        <!-- Global Confusion Matrix -->
-        <div id="global-confusion-matrix" class="global-confusion-matrix" style="display: none;">
-            <h2>Global Confusion Matrix (All Tiles)</h2>
-            <div class="cm-grid">
-                <!-- Will be populated by renderGlobalConfusionMatrix() -->
+    <div class="app-shell">
+        <!-- Left Sidebar -->
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">Tile2Net Viz</div>
+                <div class="sidebar-subtitle">Pedestrian Network QC</div>
             </div>
-        </div>
 
-        <div id="stats-section" class="stats-grid" style="display: none;">
-            <!-- Stats will be populated here -->
-        </div>
+            <a href="index.html" class="sidebar-back-btn">← Back to Map</a>
 
-        <div class="controls">
-            <div class="controls-grid">
-                <div class="control-group">
-                    <label>View Mode</label>
-                    <select id="view-mode">
-                        <option value="spatial">Spatial View</option>
-                        <option value="scatter">Scatter Plot</option>
-                        <option value="parallel">Parallel Coordinates</option>
-                        <option value="statistical">Statistical Analysis</option>
-                        <option value="erroranalysis">Error & Performance Analysis</option>
-                        <option value="table">Data Table</option>
-                    </select>
+            <nav class="sidebar-nav">
+                <div class="sidebar-section-label">Views</div>
+                <button class="sidebar-link is-active" data-nav="overview">
+                    <span>Overview</span>
+                </button>
+                <button class="sidebar-link" data-nav="scatter">
+                    <span>Scatter Plot</span>
+                </button>
+                <button class="sidebar-link" data-nav="parallel">
+                    <span>Parallel Coords</span>
+                </button>
+                <button class="sidebar-link" data-nav="stats">
+                    <span>Statistics</span>
+                </button>
+                <button class="sidebar-link" data-nav="buckets">
+                    <span>Error Buckets</span>
+                </button>
+                <button class="sidebar-link" data-nav="table">
+                    <span>Tile Table</span>
+                </button>
+
+                <div class="sidebar-section-label">Filters</div>
+                <div class="sidebar-filter-section">
+                    <label for="filter-threshold-sidebar" class="sidebar-filter-label">
+                        <span>Minimum F1 Score (%)</span>
+                        <span id="threshold-value-sidebar" class="sidebar-filter-value">0%</span>
+                    </label>
+                    <input type="range" id="filter-threshold-sidebar" min="0" max="100" value="0" step="1" class="sidebar-slider" />
+                    <div class="sidebar-filter-info" id="threshold-info-sidebar">≥ 0% (96/96 tiles)</div>
                 </div>
+                
+                <div class="sidebar-section-label">Actions</div>
+                <button class="sidebar-link sidebar-clear-btn" onclick="clearSelection()">
+                    <span>Clear Selection (<span id="selection-count-sidebar">0</span>)</span>
+                </button>
+            </nav>
+        </aside>
 
-                <div class="control-group">
-                    <label>Minimum F1 Score (%)</label>
-                    <input type="range" id="filter-threshold" min="0" max="100" value="0" step="1">
-                    <div class="range-value" id="threshold-display">≥ 0%</div>
+        <!-- Main Content Area -->
+        <div class="app-main">
+            <!-- Top Bar -->
+            <header class="app-topbar">
+                <div class="topbar-left">
+                    <h1 class="topbar-title">Tile-Level Performance Analysis</h1>
                 </div>
-
-                <div class="control-group">
-                    <button onclick="clearSelection()" style="padding: 6px 12px; background: rgba(30, 41, 59, 0.4); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.2s;" onmouseover="this.style.background='rgba(30, 41, 59, 0.6)'; this.style.color='#cbd5e1'" onmouseout="this.style.background='rgba(30, 41, 59, 0.4)'; this.style.color='#94a3b8'">
-                        Clear (<span id="selection-count">0</span>)
-                    </button>
+                <div class="topbar-right">
+                    <p class="topbar-info" id="header-info">Loading tile metrics...</p>
                 </div>
-            </div>
-        </div>
+            </header>
 
-        <div class="visualization">
-            <div id="spatial-section">
+            <!-- Error Container -->
+            <div id="error-container"></div>
+
+            <!-- Keep real select for JS compatibility -->
+            <select id="view-mode" style="display:none;">
+                <option value="spatial">Spatial View</option>
+                <option value="scatter">Scatter Plot</option>
+                <option value="parallel">Parallel Coordinates</option>
+                <option value="statistical">Statistical Analysis</option>
+                <option value="erroranalysis">Error & Performance Analysis</option>
+                <option value="table">Data Table</option>
+            </select>
+
+            <!-- Main Dashboard Grid -->
+            <main class="app-content">
+                <div class="dashboard-grid">
+                    
+                    <!-- Row 1: Overview - Top: Confusion Matrix + Spatial View, Bottom: Key Metrics -->
+                    <section class="grid-row grid-row-overview" id="overview-row">
+                        <!-- Top Left: Confusion Matrix -->
+                        <div id="global-confusion-card" class="card card-hero overview-confusion">
+                            <div id="global-confusion-matrix" class="global-confusion-matrix" style="display: none;">
+                                <h2>Global Confusion Matrix (All Tiles)</h2>
+                                <div class="cm-grid">
+                                    <!-- Will be populated by renderGlobalConfusionMatrix() -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Top Right: Spatial View -->
+                        <div class="card card-visualization overview-spatial" id="spatial-card">
+                            <div id="spatial-section" style="min-height: 700px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 class="vis-title" style="margin: 0;">🌍 Spatial View: <span id="spatial-metric-label">False Positive (m)</span></h3>
+                    <h3 class="vis-title" style="margin: 0;">Spatial View: <span id="spatial-metric-label">False Positive (m)</span></h3>
                     <div style="display: flex; align-items: center; gap: 16px;">
                         <!-- Toggle between Heatmap and Map -->
                         <div style="display: flex; background: #1e293b; border-radius: 8px; padding: 4px; border: 1px solid #334155;">
-                            <button id="toggle-heatmap" style="padding: 6px 16px; background: transparent; color: #94a3b8; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;">📈 Grid</button>
-                            <button id="toggle-map" style="padding: 6px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;">🗺️ Map</button>
+                            <button id="toggle-heatmap" style="padding: 6px 16px; background: transparent; color: #94a3b8; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;">Grid</button>
+                            <button id="toggle-map" style="padding: 6px 16px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; transition: all 0.2s;">Map</button>
                         </div>
                         <!-- Metric Selector -->
                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -1676,7 +2131,8 @@
 
                 <!-- Heatmap Grid View -->
                 <div id="heatmap-view" style="display: none;">
-                    <!-- Blurred Shape 1 - Behind heatmap -->\n                    <div class="bg-illustration blurred-shape blurred-shape-1" aria-hidden="true" style="left: -200px; top: 100px;">
+                    <!-- Blurred Shape 1 - Behind heatmap -->
+                    <div class="bg-illustration blurred-shape blurred-shape-1" aria-hidden="true" style="left: -200px; top: 100px;">
                         <img src="../../Portfolio-Final/public/images/blurred-shape.svg" alt="" />
                     </div>
                     <div class="heatmap-wrapper">
@@ -1695,7 +2151,7 @@
                     <p style="text-align: center; font-size: 13px; color: #cbd5e1; margin: 0 auto 15px; max-width: 800px; line-height: 1.6;">
                         Click tiles to see detailed metrics. Tiles colored by selected metric.
                     </p>
-                    <div id="map-container" style="height: 600px; border-radius: 8px; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.1);"></div>
+                    <div id="map-container" style="height: 550px; border-radius: 8px; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.1);"></div>
                 </div>
 
                 <!-- Legend (shared) -->
@@ -1705,9 +2161,22 @@
                     <span>High</span>
                 </div>
             </div>
+                        </div>
+                        
+                        <!-- Bottom: Key Metrics (Full Width) -->
+                        <div id="metrics-summary-card" class="card card-metrics overview-metrics">
+                            <h3 class="card-title">Key Metrics</h3>
+                            <div id="stats-section" class="stats-grid" style="display: none;">
+                                <!-- Stats will be populated here -->
+                            </div>
+                        </div>
+                    </section>
 
-            <div id="scatter-section" style="display: none;">
-                <h3 class="vis-title">📊 Precision vs Recall Scatter Plot</h3>
+                    <!-- Row 2: Other Visualizations (Hidden by default, shown when view changes) -->
+                    <section class="grid-row grid-row-main" id="other-views-row" style="display: none;">
+                        <div class="card card-visualization card-full" id="other-views-card">
+                            <div id="scatter-section" style="display: none;">
+                <h3 class="vis-title">Precision vs Recall Scatter Plot</h3>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
                     <!-- Left: Scatter Plot -->
                     <div>
@@ -1721,17 +2190,17 @@
                 </div>
             </div>
 
-            <div id="parallel-section" style="display: none;">
+                            <div id="parallel-section" style="display: none;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <div style="flex: 1;">
-                        <h3 class="vis-title" style="margin: 0;">🌐 Parallel Coordinates: Multi-Metric Analysis</h3>
+                        <h3 class="vis-title" style="margin: 0;">Parallel Coordinates: Multi-Metric Analysis</h3>
                         <p style="font-size: 13px; color: #cbd5e1; margin: 5px 0 0 0;">
                             Each line represents one tile across 7 metrics. Hover to highlight.
                         </p>
                     </div>
                     <div class="tile-filter-container">
                         <button class="tile-filter-dropdown-btn" onclick="toggleParallelTileDropdown()">
-                            🎯 Filter Tiles: <span id="parallel-selected-count" style="color: #60a5fa; font-weight: 500;"></span>
+                            Filter Tiles: <span id="parallel-selected-count" style="color: #60a5fa; font-weight: 500;"></span>
                         </button>
                         <div id="parallel-tile-checkboxes" class="tile-checkboxes"></div>
                     </div>
@@ -1742,102 +2211,102 @@
                     <div style="display: flex; align-items: center; gap: 8px;">
                         <div style="width: 30px; height: 3px; background: linear-gradient(to right, #ef4444, #f59e0b, #3b82f6, #10b981);"></div>
                         <span style="font-size: 12px; color: #e2e8f0;">Color by F1 Score (Red=Poor → Green=Excellent)</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 20px; height: 3px; background: #facc15; opacity: 0.9;"></div>
-                        <span style="font-size: 12px; color: #e2e8f0;">Highlighted Tile</span>
-                    </div>
                 </div>
             </div>
+                        </div>
 
-            <div id="statistical-section" style="display: none;">
-                <h3 class="vis-title">📊 Statistical Analysis</h3>
-                
-                <!-- Distributions -->
-                <div style="margin-bottom: 40px;">
-                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 20px 0 15px 20px;">Metric Distributions</h4>
-                    <div id="distributions-container" style="padding: 0 20px 20px 20px;">
-                        <!-- Will be populated by renderDistributions() -->
-                    </div>
-                </div>
+                            <div id="statistical-section" style="display: none;">
+                                <h3 class="vis-title">Statistical Analysis</h3>
+                                
+                                <!-- Distributions -->
+                                <div style="margin-bottom: 40px;">
+                                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 20px 0 15px 20px;">Metric Distributions</h4>
+                                    <div id="distributions-container" style="padding: 0 20px 20px 20px;">
+                                        <!-- Will be populated by renderDistributions() -->
+                                    </div>
+                                </div>
+                                
+                                <!-- Correlation Heatmap -->
+                                <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 30px;">
+                                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 0 0 15px 0; text-align: center;">Metric Correlation Heatmap</h4>
+                                    <div id="correlation-container" style="padding: 0 20px 20px 20px;">
+                                        <!-- Will be populated by renderCorrelation() -->
+                                    </div>
+                                </div>
+                            </div>
 
-                <!-- Correlation Heatmap -->
-                <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 30px;">
-                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 0 0 15px 0; text-align: center;">Metric Correlation Heatmap</h4>
-                    <div id="correlation-container" style="padding: 20px; display: flex; justify-content: center;">
-                        <!-- Will be populated by renderCorrelation() -->
-                    </div>
-                    <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px;">Pearson correlation coefficients between metrics (all 96 tiles)</p>
-                </div>
-            </div>
+                            <div id="erroranalysis-section" style="display: none;">
+                                <h3 class="vis-title">Error & Performance Analysis</h3>
+                                
+                                <!-- Performance Buckets -->
+                                <div style="margin-bottom: 40px;">
+                                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 20px 0 15px 0; text-align: center;">Performance Buckets</h4>
+                                    <p style="text-align: center; font-size: 13px; color: #cbd5e1; margin: 0 auto 20px; max-width: 800px; line-height: 1.6;">
+                                        Each mini-grid shows the <strong>spatial location</strong> of tiles in that F1 range. 
+                                        Brighter tiles = higher F1 within the bucket. Helps identify if poor performance is clustered in specific areas.
+                                    </p>
+                                    <div id="buckets-container" style="padding: 20px;">
+                                        <!-- Will be populated by renderBuckets() -->
+                                    </div>
+                                    <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px;">Tiles grouped by F1 Score: Excellent (≥90%), Good (70-90%), Fair (50-70%), Poor (<50%)</p>
+                                </div>
+                                
+                                <!-- Error Composition -->
+                                <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 30px;">
+                                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 0 0 15px 20px;">Error Composition (Top 50 Tiles)</h4>
+                                    <div id="composition-container" style="padding: 0 20px 20px 20px;">
+                                        <!-- Will be populated by renderComposition() -->
+                                    </div>
+                                </div>
+                            </div>
 
-            <div id="erroranalysis-section" style="display: none;">
-                <h3 class="vis-title">🔍 Error & Performance Analysis</h3>
-                
-                <!-- Performance Buckets -->
-                <div style="margin-bottom: 40px;">
-                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 20px 0 15px 0; text-align: center;">Performance Buckets</h4>
-                    <p style="text-align: center; font-size: 13px; color: #cbd5e1; margin: 0 auto 20px; max-width: 800px; line-height: 1.6;">
-                        Each mini-grid shows the <strong>spatial location</strong> of tiles in that F1 range. 
-                        Brighter tiles = higher F1 within the bucket. Helps identify if poor performance is clustered in specific areas.
-                    </p>
-                    <div id="buckets-container" style="padding: 20px;">
-                        <!-- Will be populated by renderBuckets() -->
-                    </div>
-                    <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px;">Tiles grouped by F1 Score: Excellent (≥90%), Good (70-90%), Fair (50-70%), Poor (<50%)</p>
-                </div>
+                            <div id="table-section" style="display: none;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                    <h3 class="vis-title" style="margin: 0;">Data Table</h3>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <label style="font-size: 13px; color: #94a3b8;">Sort By:</label>
+                                        <select id="sort-select" style="padding: 6px 12px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 13px;">
+                                            <option value="f1_score">F1 Score</option>
+                                            <option value="precision">Precision</option>
+                                            <option value="recall">Recall</option>
+                                            <option value="iou">IoU</option>
+                                            <option value="tp_length_m">True Positive (m)</option>
+                                            <option value="fp_length_m">False Positive (m)</option>
+                                            <option value="fn_length_m">False Negative (m)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="table-container">
+                                    <table id="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Tile</th>
+                                                <th>Coordinates</th>
+                                                <th>F1 Score</th>
+                                                <th>Precision</th>
+                                                <th>Recall</th>
+                                                <th>IoU</th>
+                                                <th>TP (m)</th>
+                                                <th>FP (m)</th>
+                                                <th>FN (m)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="table-body">
+                                            <!-- Will be populated -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-                <!-- Error Composition -->
-                <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 30px;">
-                    <h4 style="font-size: 16px; font-weight: 600; color: #cbd5e1; margin: 0 0 15px 20px;">Error Composition (Top 50 Tiles)</h4>
-                    <div id="composition-container" style="padding: 0 20px 20px 20px;">
-                        <!-- Will be populated by renderComposition() -->
-                    </div>
-                    <p style="text-align: center; font-size: 12px; color: #94a3b8; margin-top: 12px;">Stacked bars show TP/FP/FN breakdown sorted by F1 Score</p>
                 </div>
-            </div>
+            </main>
 
-            <div id="table-section" style="display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <h3 class="vis-title" style="margin: 0;">📋 Data Table</h3>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <label style="font-size: 13px; color: #94a3b8;">Sort By:</label>
-                        <select id="sort-select" style="padding: 6px 12px; background: #1e293b; border: 1px solid #334155; border-radius: 6px; color: #e2e8f0; font-size: 13px;">
-                            <option value="f1_score">F1 Score</option>
-                            <option value="precision">Precision</option>
-                            <option value="recall">Recall</option>
-                            <option value="iou">IoU</option>
-                            <option value="tp_length_m">True Positive (m)</option>
-                            <option value="fp_length_m">False Positive (m)</option>
-                            <option value="fn_length_m">False Negative (m)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table id="data-table">
-                        <thead>
-                            <tr>
-                                <th>Tile ID</th>
-                                <th>Position</th>
-                                <th>F1 Score</th>
-                                <th>Precision</th>
-                                <th>Recall</th>
-                                <th>IoU</th>
-                                <th>TP (m)</th>
-                                <th>FP (m)</th>
-                                <th>FN (m)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="table-body">
-                            <!-- Will be populated -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <!-- Feature Hint Banner (Portfolio CTA Style) -->
-        <div style="
+            <!-- Footer with Shortcuts -->
+            <footer class="app-footer-shortcuts">
+                <!-- Feature Hint Banner (Portfolio CTA Style) -->
+                <div style="
             background: var(--gradient-bg-card);
             backdrop-filter: blur(16px);
             padding: var(--space-xl) var(--space-2xl);
@@ -1847,7 +2316,6 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 0 20px rgba(99, 102, 241, 0.3);
         ">
             <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-lg);">
-                <div style="font-size: 28px;">⌨️</div>
                 <strong style="
                     color: var(--text-primary);
                     font-size: var(--text-xl);
@@ -1933,6 +2401,8 @@
                     <span style="margin-left: var(--space-sm);">Close modal</span>
                 </div>
             </div>
+                </div>
+            </footer>
         </div>
     </div>
 
@@ -1962,6 +2432,80 @@
     </div>
 
     <script>
+        // =========================
+        // DASHBOARD LAYOUT CONTROLS
+        // =========================
+        
+        // Wire sidebar navigation to control views
+        document.addEventListener('DOMContentLoaded', () => {
+            const viewModeSelect = document.getElementById('view-mode');
+            const otherViewsRow = document.getElementById('other-views-row');
+            const overviewRow = document.getElementById('overview-row');
+            
+            // Function to toggle between overview and other views
+            function updateViewLayout(view) {
+                if (view === 'overview' || view === 'spatial') {
+                    overviewRow.style.display = '';
+                    otherViewsRow.style.display = 'none';
+                } else {
+                    overviewRow.style.display = 'none';
+                    otherViewsRow.style.display = '';
+                }
+            }
+            
+            // Listen to view-mode select changes to keep layout in sync
+            viewModeSelect.addEventListener('change', () => {
+                updateViewLayout(viewModeSelect.value);
+                render(); // Re-render to show the selected view content
+            });
+
+            // Sidebar navigation
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    const nav = link.dataset.nav;
+                    
+                    // Update active states
+                    sidebarLinks.forEach(l => l.classList.remove('is-active'));
+                    link.classList.add('is-active');
+                    
+                    // Handle navigation
+                    if (nav === 'overview') {
+                        // Show overview and scroll to top
+                        viewModeSelect.value = 'spatial';
+                        viewModeSelect.dispatchEvent(new Event('change'));
+                        updateViewLayout('overview');
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    } else if (nav === 'scatter') {
+                        viewModeSelect.value = 'scatter';
+                        viewModeSelect.dispatchEvent(new Event('change'));
+                        updateViewLayout('scatter');
+                        document.getElementById('other-views-row')?.scrollIntoView({ behavior: 'smooth' });
+                    } else if (nav === 'parallel') {
+                        viewModeSelect.value = 'parallel';
+                        viewModeSelect.dispatchEvent(new Event('change'));
+                        updateViewLayout('parallel');
+                        document.getElementById('other-views-row')?.scrollIntoView({ behavior: 'smooth' });
+                    } else if (nav === 'stats') {
+                        viewModeSelect.value = 'statistical';
+                        viewModeSelect.dispatchEvent(new Event('change'));
+                        updateViewLayout('statistical');
+                        document.getElementById('other-views-row')?.scrollIntoView({ behavior: 'smooth' });
+                    } else if (nav === 'buckets') {
+                        viewModeSelect.value = 'erroranalysis';
+                        viewModeSelect.dispatchEvent(new Event('change'));
+                        updateViewLayout('erroranalysis');
+                        document.getElementById('other-views-row')?.scrollIntoView({ behavior: 'smooth' });
+                    } else if (nav === 'table') {
+                        viewModeSelect.value = 'table';
+                        viewModeSelect.dispatchEvent(new Event('change'));
+                        updateViewLayout('table');
+                        document.getElementById('other-views-row')?.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            });
+        });
+
         // Metrics config
         const metricsConfig = {
             f1_score: { label: 'F1 Score', isPercentage: true },
@@ -1993,6 +2537,13 @@
                 if (!response.ok) throw new Error(`Failed to load: ${response.status}`);
                 data = await response.json();
                 processData();
+                
+                // Initialize sidebar filter display
+                const thresholdInfoSidebar = document.getElementById('threshold-info-sidebar');
+                if (data && thresholdInfoSidebar) {
+                    thresholdInfoSidebar.textContent = `≥ 0% (${data.length}/${data.length} tiles)`;
+                }
+                
                 render();
             } catch (error) {
                 showError(`Error loading tile metrics: ${error.message}`);
@@ -2036,7 +2587,7 @@
 
         function showError(message) {
             const container = document.getElementById('error-container');
-            container.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+            container.innerHTML = `<div class="error">${message}</div>`;
         }
 
         function formatValue(value, isPercentage) {
@@ -4214,12 +4765,12 @@
                     
                     const gridBtn = document.createElement('button');
                     gridBtn.className = 'bucket-toggle-btn active';
-                    gridBtn.textContent = '📈 Grid';
+                    gridBtn.textContent = 'Grid';
                     gridBtn.dataset.bucketName = bucket.name;
                     
                     const mapBtn = document.createElement('button');
                     mapBtn.className = 'bucket-toggle-btn';
-                    mapBtn.textContent = '🗺️ Map';
+                    mapBtn.textContent = 'Map';
                     mapBtn.dataset.bucketName = bucket.name;
                     
                     toggleContainer.appendChild(gridBtn);
@@ -4418,7 +4969,7 @@
         }
 
         function getFilteredData() {
-            const filterThreshold = parseFloat(document.getElementById('filter-threshold').value);
+            // Use global filterThreshold variable (0-100 scale)
             const threshold = filterThreshold / 100; // Convert 0-100 to 0-1
             return data.filter(tile => (tile.f1_score || 0) >= threshold);
         }
@@ -4426,8 +4977,15 @@
         let spatialMode = 'map'; // Track current spatial view mode
         let selectedTiles = new Set(); // Track selected tiles across all views
 
+        function updateSelectionCount() {
+            const count = selectedTiles.size;
+            const sidebarCount = document.getElementById('selection-count-sidebar');
+            if (sidebarCount) sidebarCount.textContent = count;
+        }
+
         function clearSelection() {
             selectedTiles.clear();
+            updateSelectionCount();
             render(); // Re-render to remove highlights
         }
 
@@ -4437,24 +4995,24 @@
             } else {
                 selectedTiles.add(tileId);
             }
+            updateSelectionCount();
             render(); // Re-render to update highlights across all views
         }
 
         function render() {
+            // Don't render if data isn't loaded yet
+            if (!data || data.length === 0) return;
+            
             // Clean up all tooltips before rendering
             document.querySelectorAll('[id$="-tooltip"]').forEach(t => t.remove());
             
             const viewMode = document.getElementById('view-mode').value;
-            const filterThreshold = parseFloat(document.getElementById('filter-threshold').value);
+            const threshold = filterThreshold / 100; // Use global variable
             
             // Get filtered data
             const filteredData = getFilteredData();
             const filteredCount = filteredData.length;
             const totalCount = data.length;
-            
-            // Update threshold display with count
-            document.getElementById('threshold-display').textContent = 
-                `≥ ${filterThreshold}% (${filteredCount}/${totalCount} tiles)`;
             
             document.getElementById('spatial-section').style.display = viewMode === 'spatial' ? 'block' : 'none';
             document.getElementById('scatter-section').style.display = viewMode === 'scatter' ? 'block' : 'none';
@@ -4518,7 +5076,7 @@
                     cursor: pointer;
                     transition: background 0.2s;
                 " onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
-                    🗺️ View on Map
+                    View on Map
                 </button>
             `;
             
@@ -4733,7 +5291,7 @@
             }
             
             // Show loading indicator
-            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #94a3b8;"><div style="text-align: center;"><div style="font-size: 32px; margin-bottom: 8px;">🗺️</div><div>Loading map...</div></div></div>';
+            container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #94a3b8;"><div style="text-align: center;"><div>Loading map...</div></div></div>';
             
             try {
                 // Create Leaflet map
@@ -4748,7 +5306,7 @@
                 console.log('Mini map initialized successfully');
             } catch (error) {
                 console.error('Failed to initialize mini map:', error);
-                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #ef4444;"><div style="text-align: center;"><div style="font-size: 32px; margin-bottom: 8px;">⚠️</div><div>Map failed to load</div></div></div>';
+                container.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #ef4444;"><div style="text-align: center;"><div>Map failed to load</div></div></div>';
             }
         }
 
@@ -4842,9 +5400,41 @@
             if (viewMode === 'table') render();
         });
 
-        document.getElementById('filter-threshold').addEventListener('input', (e) => {
+        // Sync sidebar slider with main filter threshold (keeping for compatibility)
+        const filterThresholdInput = document.getElementById('filter-threshold');
+        const filterThresholdSidebar = document.getElementById('filter-threshold-sidebar');
+        const thresholdValueSidebar = document.getElementById('threshold-value-sidebar');
+        const thresholdInfoSidebar = document.getElementById('threshold-info-sidebar');
+        const selectionCountSidebar = document.getElementById('selection-count-sidebar');
+        
+        // Update sidebar when main slider changes (or vice versa)
+        function updateFilterThreshold(value) {
+            filterThreshold = value; // Update the global variable
+            if (filterThresholdInput) filterThresholdInput.value = value;
+            if (filterThresholdSidebar) filterThresholdSidebar.value = value;
+            if (thresholdValueSidebar) thresholdValueSidebar.textContent = `${value}%`;
+            
+            // Update tile count info
+            if (data && thresholdInfoSidebar) {
+                const threshold = value / 100;
+                const filtered = data.filter(d => (d.f1_score || 0) >= threshold);
+                thresholdInfoSidebar.textContent = `≥ ${value}% (${filtered.length}/${data.length} tiles)`;
+            }
+            
             render(); // Re-render everything with new threshold
-        });
+        }
+        
+        if (filterThresholdInput) {
+            filterThresholdInput.addEventListener('input', (e) => {
+                updateFilterThreshold(e.target.value);
+            });
+        }
+        
+        if (filterThresholdSidebar) {
+            filterThresholdSidebar.addEventListener('input', (e) => {
+                updateFilterThreshold(e.target.value);
+            });
+        }
 
         // Toggle buttons for spatial view
         document.getElementById('toggle-heatmap').addEventListener('click', () => {
