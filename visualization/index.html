@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tile2Net Evaluation Visualization</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Plotly.js for scatter plots -->
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        #header {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        #header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        label {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        select, button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+            color: #2c3e50;
+        }
+        
+        button {
+            background: #3498db;
+            color: white;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #2980b9;
+        }
+        
+        button.active {
+            background: #27ae60;
+        }
+        
+        button.dashboard-btn {
+            background: #9b59b6;
+        }
+        
+        button.dashboard-btn:hover {
+            background: #8e44ad;
+        }
+        
+        #container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 60vh 40vh;
+            gap: 15px;
+            padding: 15px;
+            height: calc(100vh - 120px);
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .panel-header {
+            background: #ecf0f1;
+            padding: 10px 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #bdc3c7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .panel-controls select {
+            padding: 5px 8px;
+            font-size: 12px;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+        
+        #scatterPlot {
+            height: 100%;
+            width: 100%;
+        }
+        
+        #statsPanel {
+            grid-column: 1 / -1;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 15px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .stat-card h3 {
+            font-size: 14px;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .stat-card .subvalue {
+            font-size: 12px;
+            color: #95a5a6;
+            margin-top: 5px;
+        }
+        
+        .legend {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            border-radius: 2px;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+        
+        .tile-popup {
+            max-width: 400px;
+        }
+        
+        .tile-popup h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        
+        .tile-popup img {
+            width: 100%;
+            height: auto;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        
+        .tile-popup .metric-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin: 5px 0;
+            font-size: 12px;
+        }
+        
+        .tile-popup .metric-label {
+            color: #7f8c8d;
+        }
+        
+        .tile-popup .metric-value {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .view-toggle button {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        /* Color scale for tile heatmap */
+        .color-scale {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        .color-scale-title {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .color-scale-gradient {
+            width: 150px;
+            height: 20px;
+            background: linear-gradient(to right, #d73027, #fee08b, #1a9850);
+            border-radius: 3px;
+        }
+        
+        .color-scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>Tile2Net Evaluation Visualization</h1>
+        <div class="controls">
+            <div class="control-group">
+                <label for="sampleSelect">Dataset:</label>
+                <select id="sampleSelect">
+                    <option value="example">Example (Boston Common Area)</option>
+                    <option value="boston_common">Boston Common</option>
+                    <option value="times_square">Times Square</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <label for="baseMapSelect">Base Map:</label>
+                <select id="baseMapSelect">
+                    <option value="satellite">Satellite Imagery</option>
+                    <option value="osm">OpenStreetMap</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <button id="refreshBtn">Refresh Data</button>
+            </div>
+            
+            <div class="control-group">
+                <button id="dashboardBtn" class="dashboard-btn">Open Dashboard</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="container">
+        <div class="panel">
+            <div class="panel-header">
+                <span>Map View</span>
+                <div class="panel-controls">
+                    <div class="view-toggle">
+                        <button id="confusionViewBtn" class="active">Confusion Matrix</button>
+                        <button id="heatmapViewBtn">Tile Heatmap</button>
+                    </div>
+                    <select id="heatmapMetricSelect" style="display: none;">
+                        <option value="f1_score">F1 Score</option>
+                        <option value="precision">Precision</option>
+                        <option value="recall">Recall</option>
+                        <option value="iou">IoU</option>
+                        <option value="tp_length_m">TP Length</option>
+                        <option value="fp_length_m">FP Length</option>
+                        <option value="fn_length_m">FN Length</option>
+                    </select>
+                </div>
+            </div>
+            <div id="map"></div>
+            <div id="colorScale" class="color-scale" style="display: none;">
+                <div class="color-scale-title">Metric Scale</div>
+                <div class="color-scale-gradient"></div>
+                <div class="color-scale-labels">
+                    <span id="scaleMin">0</span>
+                    <span id="scaleMax">1</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <span>Scatter Plot Analysis</span>
+                <div class="panel-controls">
+                    <label>X:</label>
+                    <select id="scatterXSelect">
+                        <option value="tp_length_m">TP Length</option>
+                        <option value="fp_length_m">FP Length</option>
+                        <option value="fn_length_m">FN Length</option>
+                    </select>
+                    <label>Y:</label>
+                    <select id="scatterYSelect">
+                        <option value="f1_score">F1 Score</option>
+                        <option value="precision">Precision</option>
+                        <option value="recall">Recall</option>
+                        <option value="iou">IoU</option>
+                    </select>
+                </div>
+            </div>
+            <div id="scatterPlot"></div>
+        </div>
+        
+        <div class="panel" id="statsPanel">
+            <div class="panel-header">
+                <span>Global Statistics</span>
+            </div>
+            <div class="stats-grid" id="statsGrid">
+                <div class="loading">Loading statistics...</div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>

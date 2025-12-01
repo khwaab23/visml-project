@@ -2017,7 +2017,16 @@
                 <div class="sidebar-subtitle">Pedestrian Network QC</div>
             </div>
 
-            <a href="index.html" class="sidebar-back-btn">← Back to Map</a>
+            <a href="#" id="back-to-map-btn" class="sidebar-back-btn">← Back to Map</a>
+
+            <div class="sidebar-section-label">Dataset</div>
+            <div class="sidebar-filter-section" style="margin-bottom: 1.5rem;">
+                <select id="dataset-selector" class="sidebar-select" style="width: 100%; padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border-primary); background: var(--bg-card); color: var(--text-primary); font-size: var(--text-sm);">
+                    <option value="example">Example (Boston Common Area)</option>
+                    <option value="boston_common">Boston Common</option>
+                    <option value="times_square">Times Square</option>
+                </select>
+            </div>
 
             <nav class="sidebar-nav">
                 <div class="sidebar-section-label">Views</div>
@@ -2502,6 +2511,36 @@
             });
         });
 
+        // Dataset configuration
+        const datasetConfig = {
+            'example': {
+                name: 'Example (Boston Common Area)',
+                dataPath: '../polygon_analysis_output',
+                tilesPath: '../example/tiles/static/ma/256_19',
+                imageExtension: 'jpg'
+            },
+            'boston_common': {
+                name: 'Boston Common',
+                dataPath: '../boston_common_output',
+                tilesPath: '../boston_common/tiles/static/ma/256_19',
+                imageExtension: 'jpg'
+            },
+            'times_square': {
+                name: 'Times Square',
+                dataPath: '../times_square_output',
+                tilesPath: '../times_square/tiles/static/nyc/256_19',
+                imageExtension: 'png'
+            }
+        };
+
+        // Get dataset from URL parameter or default to 'example'
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentDataset = urlParams.get('sample') || 'example';
+        if (!datasetConfig[currentDataset]) {
+            console.warn(`Invalid dataset '${currentDataset}', falling back to 'example'`);
+            currentDataset = 'example';
+        }
+
         // Metrics config
         const metricsConfig = {
             f1_score: { label: 'F1 Score', isPercentage: true },
@@ -2529,10 +2568,20 @@
         // Load data
         async function loadData() {
             try {
-                const response = await fetch('confusion_matrix_per_tile.json');
+                const config = datasetConfig[currentDataset];
+                console.log(`Loading data for dataset: ${config.name}`);
+                console.log(`Data path: ${config.dataPath}/confusion_matrix_per_tile_polygon_based.json`);
+                
+                const response = await fetch(`${config.dataPath}/confusion_matrix_per_tile_polygon_based.json`);
                 if (!response.ok) throw new Error(`Failed to load: ${response.status}`);
                 data = await response.json();
                 processData();
+                
+                // Update dataset selector if exists
+                const datasetSelector = document.getElementById('dataset-selector');
+                if (datasetSelector) {
+                    datasetSelector.value = currentDataset;
+                }
                 
                 // Initialize sidebar filter display
                 const thresholdInfoSidebar = document.getElementById('threshold-info-sidebar');
@@ -3785,22 +3834,21 @@
             }
 
             // Define metrics/dimensions
+            // Only show percentage-based metrics for fair comparison
             const dimensions = [
-                { key: 'f1_score', label: 'F1 Score', range: [0, 1] },
-                { key: 'precision', label: 'Precision', range: [0, 1] },
-                { key: 'recall', label: 'Recall', range: [0, 1] },
-                { key: 'iou', label: 'IoU', range: [0, 1] },
-                { key: 'tp_length_m', label: 'TP (m)', range: null },
-                { key: 'fp_length_m', label: 'FP (m)', range: null },
-                { key: 'fn_length_m', label: 'FN (m)', range: null }
+                { key: 'f1_score', label: 'F1 Score', isPercentage: true },
+                { key: 'precision', label: 'Precision', isPercentage: true },
+                { key: 'recall', label: 'Recall', isPercentage: true },
+                { key: 'iou', label: 'IoU', isPercentage: true }
             ];
-
-            // Calculate auto ranges for length metrics
-            dimensions.forEach(dim => {
-                if (!dim.range) {
-                    const values = displayData.map(d => d[dim.key] || 0);
-                    dim.range = [Math.min(...values), Math.max(...values)];
-                }
+            
+            // Calculate min/max for each dimension across ALL data
+            const dimensionRanges = dimensions.map(dim => {
+                const values = data.map(d => d[dim.key] || 0);
+                return {
+                    min: Math.min(...values),
+                    max: Math.max(...values)
+                };
             });
 
             // SVG setup
@@ -3824,9 +3872,9 @@
             const axisSpacing = plotWidth / (dimensions.length - 1);
             const xPositions = dimensions.map((d, i) => i * axisSpacing);
 
-            // Create scale functions
-            const scales = dimensions.map(dim => {
-                const [min, max] = dim.range;
+            // Create scale functions - normalize each dimension independently to 0-1
+            const scales = dimensions.map((dim, idx) => {
+                const { min, max } = dimensionRanges[idx];
                 return (value) => {
                     const normalized = (value - min) / (max - min || 1);
                     return plotHeight - (normalized * plotHeight);
@@ -3872,7 +3920,10 @@
                 for (let j = 0; j <= numTicks; j++) {
                     const t = j / numTicks;
                     const y = plotHeight - (t * plotHeight);
-                    const value = dim.range[0] + t * (dim.range[1] - dim.range[0]);
+                    
+                    // Calculate the actual value to display based on the dimension's range
+                    const range = dimensionRanges[i];
+                    const displayValue = range.min + t * (range.max - range.min);
 
                     // Tick mark
                     const tick = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -3892,7 +3943,12 @@
                     tickLabel.setAttribute('dominant-baseline', 'middle');
                     tickLabel.setAttribute('fill', '#94a3b8');
                     tickLabel.setAttribute('font-size', '10px');
-                    tickLabel.textContent = value.toFixed(value < 10 ? 2 : 0);
+                    // Format based on metric type
+                    if (dim.isPercentage) {
+                        tickLabel.textContent = (displayValue * 100).toFixed(0) + '%';
+                    } else {
+                        tickLabel.textContent = displayValue.toFixed(displayValue < 10 ? 1 : 0);
+                    }
                     g.appendChild(tickLabel);
                 }
             });
@@ -5518,6 +5574,31 @@
                     map.setView([nextTile.lat, nextTile.lon], map.getZoom());
                 }
             }
+        });
+
+        // Dataset selector change handler
+        document.getElementById('dataset-selector').addEventListener('change', async (e) => {
+            currentDataset = e.target.value;
+            console.log(`Switching to dataset: ${currentDataset}`);
+            
+            // Reset state
+            selectedTiles.clear();
+            parallelSelectedTiles.clear();
+            filterThreshold = 0;
+            
+            // Update URL without reload
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('sample', currentDataset);
+            window.history.pushState({}, '', newUrl);
+            
+            // Reload data
+            await loadData();
+        });
+
+        // Back to Map button handler
+        document.getElementById('back-to-map-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = `../visualization/index.html?sample=${currentDataset}`;
         });
 
         // Initialize
