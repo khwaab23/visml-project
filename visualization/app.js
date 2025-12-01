@@ -17,13 +17,6 @@ const state = {
 
 // Sample-specific configuration
 const sampleConfig = {
-    'example': {
-        tilePath: '../example/tiles/static/ma/256_19',
-        imageExtension: 'jpg',
-        outputPath: '../polygon_analysis_output',
-        center: [42.3601, -71.0589],
-        name: 'Example (Boston Common Area)'
-    },
     'boston_common': {
         tilePath: '../boston_common/tiles/static/ma/256_19',
         imageExtension: 'jpg',
