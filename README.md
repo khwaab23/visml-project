@@ -232,6 +232,7 @@ This project is licensed under the MIT License.
 ## 👥 Authors
 
 - Austin Huang ([@austinhuang0131](https://github.com/austinhuang0131))
+- Khwaab Thareja (https://github.com/khwaab23)
 
 ## 🙏 Acknowledgments
 
