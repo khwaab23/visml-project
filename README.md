@@ -1,5 +1,7 @@
 # visML - Pedestrian Path Detection Visualization & Analytics
 
+WORKING DEMO: https://pedastrian-path-analysis.netlify.app/example/tilemetrics.html?sample=boston_common
+
 A comprehensive visualization and analytics system for evaluating ML-detected pedestrian paths against OpenStreetMap ground truth data.
 
 ![Project Status](https://img.shields.io/badge/status-active-success.svg)
